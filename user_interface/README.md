@@ -1,0 +1,1 @@
+User interface component - The program running on ARM to drive the game logic

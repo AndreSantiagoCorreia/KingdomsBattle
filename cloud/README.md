@@ -1,0 +1,1 @@
+Cloud server component - A backend server exchanging data between users
