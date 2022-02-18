@@ -96,8 +96,27 @@ bool testCardAttackedBy() {
     return error;
 }
 
+void testDeckConstructor() {
+    Deck deck1 = Deck();
+    for (int i = 0; i < 13; i++) {
+        cout << "     card" << i+1 << " def=" << deck1.cardData[i].defPoint << " off=" << deck1.cardData[i].offPoint <<endl;
+    }
+    cout << "     numCards= " << deck1.numCards << endl;
+}
+
+void testDeckGetCard() {
+    Deck deck1 = Deck();
+    Card currCard;
+    for (int i = 0; i < 13; i++) {
+        currCard = deck1.getCard();
+        cout << i << ": def= " << currCard.defPoint << " off= " << currCard.offPoint << " numCards= "<< deck1.numCards << endl;
+    }
+}
+
 int main (void) {
     bool err;
+
+    // Card.cpp test
     cout << "Start Card constructor test..." << endl;
     for (unsigned int i = 0; i < 5; i++) {
         err = testCardConstructor(i, i*2);
@@ -113,6 +132,16 @@ int main (void) {
     cout << "Start Card attackedBy function test..." << endl;
     err = testCardAttackedBy();
     if(!err) { cout << "Passed Card attackedBy function test!" << endl << endl; }
+
+
+    // Deck.cpp test
+    cout << "Start Deck constructor test..." << endl;
+    testDeckConstructor();
+    cout << "Passed Deck constructor test!" << endl << endl;
+
+    cout << "Start Deck getCard test..." << endl;
+    testDeckGetCard();
+    cout << "Passed Deck getCard test!" << endl << endl;
 
     return 0;
 }

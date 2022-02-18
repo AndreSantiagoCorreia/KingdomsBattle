@@ -19,6 +19,9 @@ namespace cardGameUtil {
         cardData[10] = Card(2,2);
         cardData[11] = Card(2,4);
         cardData[12] = Card(4,4);
+
+        // initialize numCards
+        numCards = 13;
     }
 
     /* Equality operator: checks if two cards are the same */
@@ -47,11 +50,6 @@ namespace cardGameUtil {
         cardData.erase(cardData.begin()+rndIndex);
         numCards--;
         cardData.resize(numCards);
-        return cardData[rndIndex];
-    }
-
-    /* Get number of cards in the deck */
-    int Deck::getNumCards(){
-        return numCards;
+        return rndCard;
     }
 }
