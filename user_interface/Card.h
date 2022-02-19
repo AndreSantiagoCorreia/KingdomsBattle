@@ -6,8 +6,9 @@ namespace cardGameUtil {
     public:
         unsigned int defPoint;   /* Defensive point of card */
         unsigned int offPoint;   /* Offensive point of card */
+        bool isUsed;
 
-        /* Constructor: Creates an empty Card */
+        /* Constructor: Creates a default Card */
         Card();
 
         /* Constructor: Creates a card with the specified points */

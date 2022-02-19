@@ -1,5 +1,12 @@
 #include "Deck.h"
 
+#include <iostream>   
+#include <stdexcept>
+#include <cstdlib>    // to return random card from deck
+#include <time.h>
+
+using namespace std;
+
 namespace cardGameUtil {
     /* Constructor: Creates a Deck with full set of cards */
     Deck::Deck() {
@@ -41,15 +48,20 @@ namespace cardGameUtil {
 
     /* Get random card from the deck */
     Card Deck::getCard() {
-        // get random card
-        random_device rd;
-        int rndIndex = (int) rd() % numCards;
-        Card rndCard = cardData[rndIndex];
+        if (numCards == 0) {
+            throw out_of_range ("Deck is empty. Cannot pick another card from deck.");
+        }
 
-        // erase card from cardData[] and change numCards to appropriate value
-        cardData.erase(cardData.begin()+rndIndex);
+        // get random card
+        srand(time(NULL));
+        int rndIndex;
+        do {
+            rndIndex = rand() % 13;   // 13 = max number of cards
+        } while (cardData[rndIndex].isUsed);
+
+        cardData[rndIndex].isUsed = true;
         numCards--;
-        cardData.resize(numCards);
-        return rndCard;
+
+        return cardData[rndIndex];
     }
 }

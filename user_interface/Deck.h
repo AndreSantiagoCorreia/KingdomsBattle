@@ -1,7 +1,6 @@
 #ifndef H_Deck
 #define H_Deck
 
-#include <random>
 #include <vector>
 #include "Card.h"
 
@@ -10,7 +9,7 @@ using namespace std;
 namespace cardGameUtil {
     class Deck {
     public:
-        vector<Card> cardData;   /* Vector with cards; 
+        vector<Card> cardData;     /* Vector with cards; 
                                         cardData[0]-cardData[4] = defensive 
                                         cardData[5]-cardData[9] = offensive
                                         cardData[10]-cardData[12] = multi */

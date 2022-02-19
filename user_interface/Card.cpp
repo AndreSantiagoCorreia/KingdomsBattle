@@ -5,18 +5,21 @@ namespace cardGameUtil {
     Card::Card() {
         defPoint = 0;
         offPoint = 0;
+        isUsed = false;
     }
 
     /* Constructor: Creates a card with the specified points */
     Card::Card(unsigned int def, unsigned int off) {
         defPoint = def;
         offPoint = off;
+        isUsed = false;
     }
 
     /* Copies content of other card to this card */
     void Card::Copy(const Card & other) {
         defPoint = other.defPoint;
         offPoint = other.offPoint;
+        isUsed = other.isUsed;
     }
 
     /* Assign content of other to this card as a copy */
@@ -24,6 +27,7 @@ namespace cardGameUtil {
         if (this != &other) {
             Copy(other);
         }
+        return *this;
     }
     
     /* Equality operator: checks if two cards are the same */
