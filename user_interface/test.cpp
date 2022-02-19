@@ -1,5 +1,6 @@
 #include "Card.h"
 #include "Deck.h"
+#include "Player.h"
 #include <iostream>
 
 using namespace std;
@@ -9,15 +10,20 @@ bool testCardConstructor(unsigned int def, unsigned int off) {
     bool error = false;
     Card testCard1 = Card(def, off);
     unsigned int card1def = testCard1.defPoint;
-    unsigned int card2off = testCard1.offPoint;
+    unsigned int card1off = testCard1.offPoint;
 
     if (card1def != def) {
         cout << "Expected defensie point: 1, Actual defensive point: " << card1def << endl;
         error = true;
     }
 
-    if (card2off != off) {
-        cout << "Expected offensive point: 2, Actual defensive point: " << card2off << endl;
+    if (card1off != off) {
+        cout << "Expected offensive point: 2, Actual defensive point: " << card1off << endl;
+        error = true;
+    }
+
+    if (testCard1.isUsed != false) {
+        cout << "Expected isUsed: false, Actual isUsed: " << testCard1.isUsed << endl;
         error = true;
     }
 
@@ -101,7 +107,7 @@ void testDeckConstructor() {
     for (int i = 0; i < 13; i++) {
         cout << "     card" << i+1 << " def=" << deck1.cardData[i].defPoint << " off=" << deck1.cardData[i].offPoint <<endl;
     }
-    cout << "     numCards= " << deck1.numCards << endl;
+    cout << "     numCards=" << deck1.numCards << endl;
 }
 
 void testDeckGetCard() {
@@ -111,6 +117,54 @@ void testDeckGetCard() {
         currCard = deck1.getCard();
         cout << i << ": def= " << currCard.defPoint << " off= " << currCard.offPoint << " numCards= "<< deck1.numCards << endl;
     }
+}
+
+void testDeckGetCard2() {
+    Deck deck = Deck();
+    Card currCard;
+
+    // take 13 cards first
+    for (int i = 0; i < 13; i++) {
+        currCard = deck.getCard();
+    }
+
+    // call getCard one more time
+    // should throw an out of range exception
+    currCard = deck.getCard();
+}
+
+bool testPlayerConstructor() {
+    bool error = false;
+    Player p1 = Player();
+    if (p1.HP != 20) {
+        cout << "Player's HP has not been initiallized to 20" << endl;
+        error = true;
+    }
+
+    if (p1.deck.numCards != 13) {
+        cout << "Player's deck does not have 13 cards" << endl;
+        error = true;
+    }
+
+    return error;
+}
+
+bool testPlayerAttckedBy() {
+    Player p1 = Player();
+    
+    p1.attackedBy(4);
+    cout << "      HP Remaining: " << p1.HP << endl;
+    p1.attackedBy(3);
+    cout << "      HP Remaining: " << p1.HP << endl;
+    p1.attackedBy(0);
+    cout << "      HP Remaining: " << p1.HP << endl;
+    p1.attackedBy(5);
+    cout << "      HP Remaining: " << p1.HP << endl;
+    p1.attackedBy(2);
+    cout << "      HP Remaining: " << p1.HP << endl;
+    p1.attackedBy(10);
+    cout << "      HP Remaining: " << p1.HP << endl;
+    p1.attackedBy(2); // should throw an exception
 }
 
 int main (void) {
@@ -142,6 +196,20 @@ int main (void) {
     cout << "Start Deck getCard test..." << endl;
     testDeckGetCard();
     cout << "Passed Deck getCard test!" << endl << endl;
+
+    cout << "Start Deck getCard test2..." << endl;
+    testDeckGetCard2();
+    cout << "Passed Deck getCard test!" << endl << endl;
+
+    cout << "Start Player constructor test..." << endl;
+    for (int k = 0; k < 10; k++) {
+        err = testPlayerConstructor();
+        if (err) { cout << "Player constructor test failed at " << k << "th time" << endl; }
+    }
+    if (!err) { cout << "Passed Player constructor test!" << endl << endl; }
+
+    cout << "Start Player attackedBy function test..." << endl;
+    testPlayerAttckedBy();
 
     return 0;
 }

@@ -1,11 +1,8 @@
 #include "Deck.h"
 
-#include <iostream>   
 #include <stdexcept>
 #include <cstdlib>    // to return random card from deck
 #include <time.h>
-
-using namespace std;
 
 namespace cardGameUtil {
     /* Constructor: Creates a Deck with full set of cards */
