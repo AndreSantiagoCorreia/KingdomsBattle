@@ -50,7 +50,6 @@ namespace cardGameUtil {
         }
 
         // get random card
-        srand(time(NULL));
         int rndIndex;
         do {
             rndIndex = rand() % 13;   // 13 = max number of cards

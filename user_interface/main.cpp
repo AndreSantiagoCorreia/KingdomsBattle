@@ -72,7 +72,7 @@ int main (void) {
             // save index
             cin >> chosenCard;
 
-            while (chosenCard < 0 || chosenCard > 2) {
+            while (chosenCard < 1 || chosenCard > 3) {
                 cout << "   Invalid card number; Please choose between 1 and 3: ";
                 cin >> chosenCard;
             }
