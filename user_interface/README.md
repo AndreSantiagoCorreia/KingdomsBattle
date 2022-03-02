@@ -1,9 +1,13 @@
-User interface component - The program running on ARM to drive the game logic  
+# User interface component
+The program running on ARM to drive the game logic  
 
-## programming language used
+## Author
+Cassiel Jung
+
+## Programming language used
 C++
 
-## class
+## Class
 - Player
 - Deck
 - Card
