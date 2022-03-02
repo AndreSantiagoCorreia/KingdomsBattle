@@ -1,6 +1,10 @@
 #ifndef H_card
 #define H_card
 
+#include <iostream>
+
+using namespace std;
+
 namespace cardGameUtil {
     class Card {
     public:

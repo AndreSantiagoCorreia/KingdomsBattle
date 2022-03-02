@@ -1,4 +1,7 @@
 #include "card.h"
+#include <iostream>
+
+using namespace std;
 
 namespace cardGameUtil {
     /* Constructor: Creates an empty Card */
