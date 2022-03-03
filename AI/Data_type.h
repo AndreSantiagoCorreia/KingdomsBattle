@@ -10,11 +10,15 @@ typedef uint32_t uint32;
 #define player_num 2 // can be modified later
 #define card_num 13
 #define max_round 10
+#define card_deck_num 3
 
 // data types
 struct card{
-    int card_ID;    // 1 - 13
+    int card_ID;    // 1 - 13 index
     int player_ID; // to be the same for 13 cards
+
+    // avaliable or not?
+    bool valid;
 };
 
 struct player{
@@ -30,5 +34,5 @@ struct player{
 
     // used during battle
     struct card* cardHolds; // single card been chose
-    struct player* object; // the player being chose
+    int objectID; // the player being chose
 };
