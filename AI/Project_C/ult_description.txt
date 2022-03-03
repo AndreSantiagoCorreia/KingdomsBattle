@@ -1,0 +1,11 @@
+Ultimate 0:
+    No ultimate.
+
+Ultimate 1 (Passive):
+    The player is able to automatically totally block the damage received in the first attack.
+
+Ultimate 2 (Passive):
+    The player breed with health of 30.
+
+Ultimate 3 (Active):
+    The player can redirect the effect of next card, can only be used at the start of the round.
