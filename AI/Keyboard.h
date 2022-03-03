@@ -9,5 +9,5 @@ typedef uint32_t uint32;
 
 #include "Data_type.h"
 
-void user_card_choice();
-void user_object_choice();
+void user_card_choice(struct player _player);
+void user_object_choice(struct player _player);

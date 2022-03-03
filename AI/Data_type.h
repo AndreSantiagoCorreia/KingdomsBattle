@@ -9,6 +9,7 @@ typedef uint32_t uint32;
 
 #define player_num 2 // can be modified later
 #define card_num 13
+#define max_round 10
 
 // data types
 struct card{
