@@ -6,7 +6,7 @@ Round Buff 1:
 
 
 Round Buff 2:
-    Double the damage;
+    Double the damage; √
 
 
 Round Buff 3:
