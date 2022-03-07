@@ -4,6 +4,7 @@
 
 3. A round buff
 
-4. Able to compile
+Problems:
+    Timer is set when waiting for user's inputs only... in a wierd way.
 
-5. Probably need a C++ version as well
+    Object encoding of ultimate 3 might be a problem...

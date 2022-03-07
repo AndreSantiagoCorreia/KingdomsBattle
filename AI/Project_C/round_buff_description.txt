@@ -1,0 +1,13 @@
+Round Buff 0:
+    All active buffs are disabled. √
+
+Round Buff 1:
+    Not realized: If the player is eliminated in this round, he can become zombie in next round and make double damage.
+
+
+Round Buff 2:
+    Double the damage;
+
+
+Round Buff 3:
+    The player draw cards in reverse order... √

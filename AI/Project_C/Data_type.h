@@ -9,7 +9,9 @@
 #define card_num 13
 #define max_round 10
 #define card_deck_num 3
+#define round_buff_num 4
 
+#define TIME_UP 20000
 #define ult_num 4 // need to be less than
 
 #ifndef _DATAH_

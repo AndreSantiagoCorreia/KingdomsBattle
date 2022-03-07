@@ -7,7 +7,12 @@ void card_simple_attack(int damage, struct player* _player){
 
     printf("Player%d receives %d damage\n", _player -> player_ID, damage);
 
-    damage = 99;
+    // ultimate 1 is realized here
+    if (_player -> ultimate == 1){
+        printf("Player%d's ultimate 1 is activated, damage blocked. \n", _player -> player_ID);
+        _player -> ultimate = 0;
+        damage = 0;
+    }
 
     _player -> shield = _player -> shield - damage;
 
