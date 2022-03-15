@@ -5,19 +5,24 @@
 #include <time.h>
 #include <stdbool.h>
 
-typedef uint32_t uint32;
-
 #define player_num 2 // can be modified later
 #define card_num 13
 #define max_round 10
 #define card_deck_num 3
+#define round_buff_num 4
+
+#define TIME_UP 20000
+#define ult_num 4 // need to be less than
+
+#ifndef _DATAH_
+#define _DATAH_
 
 // data types
 struct card{
     int card_ID;    // 1 - 13 index
     int player_ID; // to be the same for 13 cards
 
-    // avaliable or not?
+    // available or not?
     bool valid;
 };
 
@@ -33,6 +38,11 @@ struct player{
     bool alive;
 
     // used during battle
-    struct card* cardHolds; // single card been chose
+    struct card cardHolds; // single card been chose
     int objectID; // the player being chose
+
+    // Buff relevant
+    int ultimate;
 };
+
+#endif

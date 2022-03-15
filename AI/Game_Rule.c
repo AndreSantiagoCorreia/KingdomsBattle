@@ -12,20 +12,30 @@ typedef uint32_t uint32;
 
 // need to be changed
 #include "Data_type.h"
+#include "Card_Function.h"
 
 // 13 cards
 struct card* cardInitialization(int player);
 void cardFunction(struct card _card, struct player _player);
 
-// card functions
-void card_simple_attack(int damage, struct player _player);
-void card_simple_defence(int shield, struct player _player);
+// global variable
+int playerNum;
 
 void main(){
 
-    struct player* player_array = malloc(player_num * sizeof(struct player));
+    printf("Player Number (2 - 5): \n");
 
-    for (int i = 0; i < player_num; i++){
+    scanf("%d", playerNum);
+
+    if (playerNum == NULL || playerNum > 5 || playerNum < 2){
+        printf("Invalid input, value set to default: 2 \n");
+        playerNum = player_num;
+    }
+
+    struct player* player_array = malloc(playerNum * sizeof(struct player));
+
+    // initialize players
+    for (int i = 0; i < playerNum; i++){
         player_array[i].cards = cardInitialization(i); //stores the pointers
         player_array[i].player_ID = i;
         player_array[i].health = 20;
@@ -36,25 +46,48 @@ void main(){
 
     int p_index = 0;
 
+    int round = 0;
+
     // game play
-    while(1){
+    while(round < max_round){
         // do something with keyboard
 
         struct player current_player = player_array[p_index];
 
         current_player.time_limit = clock(); // set current time to player
 
-        printf("Round (player%d)\n", current_player.player_ID);
+        printf("Round %d(player%d)\n", round, current_player.player_ID);
 
         // probably need to update timer...
         while(clock() - current_player.time_limit >= 20 && current_player.alive){
+            // the card being chosen
             struct card _card;
 
-            // ... do something with keyboard and mouse...
+            // randomly draw 3 cards from the card deck...
+            struct card* current_card_deck = malloc(card_deck_num * sizeof(struct card));
+
+            // randomly choose 3 cards
+            int index = 0;
+            while (index < 3){
+                int card_index = rand() % 13;
+                current_card_deck[index] = current_player.cards[card_index]; // append the card to the array
+                index++;
+            }
+            
+            // user choose card
+            user_card_choice(current_player, current_card_deck);
+
+            // choose an opponent
+            user_object_choice(current_player, playerNum);
+            
+            _card = current_player.cardHolds;
+
             printf("Player%d chooses the card%d\n", current_player.player_ID, _card.card_ID);
 
-            cardFunction(_card, struct player _object); //...
+            cardFunction(_card, player_array[current_player.objectID]); //...
 
+            // disable using card id
+            current_player.cards[_card.card_ID].valid = false;
         }
 
         printf("End Round (player%d)\n", current_player.player_ID);
@@ -62,8 +95,11 @@ void main(){
         // keep the loop
         p_index++;
 
-        if (p_index >= player_num){
+        if (p_index >= playerNum){
             p_index = 0;
+
+            // all players used
+            round++;
         }
     }
 
@@ -77,6 +113,7 @@ struct card* cardInitialization(int playerID){
     for (int i = 1; i <= card_num; i++){
         card_array[i].card_ID = i;
         card_array[i].player_ID = playerID;
+        card_array[i].valid = true; // set card to valid
     }
 
     return card_array;
@@ -125,31 +162,4 @@ void cardFunction(struct card _card, struct player _player){
     else if (_card.card_ID == 13){
         card_simple_defence(_card.card_ID, _player);
     }
-}
-
-void card_simple_attack(int damage, struct player _player){
-
-    printf("The object of attack is Player%d\n", _player.player_ID);
-
-    printf("Player%d receives %d damage\n", _player.player_ID, damage);
-
-    _player.shield = _player.shield - damage;
-
-    int remain_damage = 0 - _player.shield;
-
-    if (remain_damage > 0){
-        _player.health = _player.health - remain_damage;
-    }
-
-    printf("Player%d: Shield: %d \n Health: %d\n", _player.player_ID, _player.shield, _player.health);
-
-    if (_player.health <= 0){
-        printf("Player%d is eliminated!", _player.player_ID);
-
-        _player.alive = false;
-    }
-}
-
-void card_simple_defence(int shield, struct player _player){
-    _player.shield = shield;
 }
