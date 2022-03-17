@@ -42,7 +42,11 @@ int main(){
         player_array[i].cards = cardInitialization(i); //stores the pointers
         player_array[i].player_ID = i;
         player_array[i].health = 20;
-        player_array[i].shield = 0;
+        player_array[i].shield[0] = 0;
+        player_array[i].shield[1] = 0;
+        player_array[i].shield[2] = 0;
+        player_array[i].indexAdd = 0;
+        player_array[i].indexRemove = 1;
         player_array[i].time_limit = 0; // 20 seconds time limit
         player_array[i].alive = true;
 
@@ -270,6 +274,12 @@ int main(){
 
                 break;
             }
+
+            current_player -> shield[current_player -> indexRemove] = 0; // Remove the old shield
+
+            current_player -> indexAdd = (current_player -> indexAdd++) % 3;
+            current_player -> indexRemove = (current_player -> indexRemove++) % 3;
+
 
             printf("End Round (player%d)\n\n", current_player->player_ID);
         }

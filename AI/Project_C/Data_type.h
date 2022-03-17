@@ -32,7 +32,9 @@ struct player{
     int player_ID;
     int health; // initially 20
     clock_t time_limit; // need to work on it later
-    int shield;
+    int shield[3];
+    int indexAdd;
+    int indexRemove;
 
     // alive or not
     bool alive;
