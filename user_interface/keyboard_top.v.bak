@@ -1,0 +1,135 @@
+module keyboard_top (
+    input CLK_50,       // 50MHz Clock
+    input PS_CLK,       // PS2 Clock
+    input PS_DATA,      // PS2 Data
+
+    output [6:0] HEX0,  // 7 segment display
+    output [6:0] HEX1,
+    output [6:0] HEX2,
+    output [6:0] HEX3,
+    output [6:0] HEX4,
+    output [6:0] HEX5
+);
+
+/* Counter */
+reg data_enable;
+reg [4:0] counter = 5'd0;
+
+wire counter_enable = (counter >= 8'd11) ? 1'b1 : 1'b0;
+
+always @ (negedge PS_CLK or posedge counter_enable) begin
+    if (counter_enable) begin
+        counter <= 5'd0;
+        data_enable <= 1'b1;
+    end else begin
+        counter <= counter + 1'b1;
+        data_enable <= 1'b0;
+    end
+end
+
+
+/* Serial shift register to obtain data from PS_DATA */
+reg [10:0] keycode;
+reg ready_to_get_data;
+
+always @ (negedge PS_CLK or posedge data_enable) begin
+    if (data_enable) ready_to_get_data <= 1;
+    else begin
+        case (counter)
+            5'd0: begin ready_to_get_data <= 1; keycode[0] <= PS_DATA; end  // start
+
+            5'd1: begin ready_to_get_data <= 0; keycode[1] <= PS_DATA; end  // 8bit keycode
+            5'd2: begin ready_to_get_data <= 0; keycode[2] <= PS_DATA; end
+            5'd3: begin ready_to_get_data <= 0; keycode[3] <= PS_DATA; end
+            5'd4: begin ready_to_get_data <= 0; keycode[4] <= PS_DATA; end
+            5'd5: begin ready_to_get_data <= 0; keycode[5] <= PS_DATA; end
+            5'd6: begin ready_to_get_data <= 0; keycode[6] <= PS_DATA; end
+            5'd7: begin ready_to_get_data <= 0; keycode[7] <= PS_DATA; end
+            5'd8: begin ready_to_get_data <= 0; keycode[8] <= PS_DATA; end
+
+            5'd9: begin ready_to_get_data <= 1; keycode[9] <= PS_DATA; end  // parity
+            5'd10: begin ready_to_get_data <= 1; keycode[10] <= PS_DATA; end  // stop
+            5'd11: begin ready_to_get_data <= 1; end
+            5'd12: begin ready_to_get_data <= 1; end
+        endcase
+    end
+end
+
+/* 
+ *  Below are to display corresponding keyboard input to 7 segment display
+ *  Only for testing purposes
+ */
+parameter sseg_0 = 14'b11111111000000;		// zero
+parameter sseg_1 = 14'b11111111111001;		// one
+parameter sseg_2 = 14'b11111110100100;		// two
+parameter sseg_3 = 14'b11111110110000;		// three
+parameter sseg_4 = 14'b11111110011001;		// four
+parameter sseg_5 = 14'b11111110010010;		// five
+parameter sseg_6 = 14'b11111110000010;		// six
+parameter sseg_7 = 14'b11111111111000;		// seven
+parameter sseg_8 = 14'b11111110000000;		// eight
+parameter sseg_9 = 14'b11111110011000;		// nine
+parameter sseg_a = 14'b11111110001000;		// a
+parameter sseg_b = 14'b11111110000011;		// b
+parameter sseg_c = 14'b11111111000110;		// c
+parameter sseg_d = 14'b11111110100001;		// d
+parameter sseg_e = 14'b11111110000110;		// e
+parameter sseg_f = 14'b11111110001110;		// f
+parameter sseg_g = 14'b01100101000110;		// g
+parameter sseg_h = 14'b11111110001001;		// h
+parameter sseg_i = 14'b10001101110110;		// I
+parameter sseg_j = 14'b11111101100000;		// J
+parameter sseg_k = 14'b01101010001011;		// K
+parameter sseg_l = 14'b11111111000111; 		// L
+parameter sseg_m = 14'b10110001001100;		// M
+parameter sseg_n = 14'b11100010001011;		// N
+parameter sseg_o = 14'b11100001000110;		// O
+parameter sseg_p = 14'b11111110001100;		// P
+parameter sseg_q = 14'b11101111000000;		// Q
+parameter sseg_r = 14'b01001000001110;		// R
+parameter sseg_s = 14'b01100100010110;		// S
+parameter sseg_t = 14'b10011101111110;		// T
+parameter sseg_u = 14'b11111111000001;		// U
+parameter sseg_v = 14'b11011011011011;		// V
+parameter sseg_w = 14'b11000011000011; 	    // w
+parameter sseg_x = 14'b01101010010011; 	    // x
+parameter sseg_y = 14'b01111010011011; 	    // y
+parameter sseg_z = 14'b01101000100110;		// Z
+
+parameter sseg_enter = 14'b0000110_0101011;     // enter
+parameter sseg_space = 14'b0010010_0001100;
+
+reg [13:0] hex_out;
+
+always_ff @( CLK_50 ) begin
+    case (keycode[8:1])
+        8'h1D: hex_out <= sseg_w;  // w
+        8'h1C: hex_out <= sseg_a;  // a
+        8'h23: hex_out <= sseg_d;  // d
+        8'h1B: hex_out <= sseg_s;  // s
+
+        8'h69: hex_out <= sseg_1;  // 1
+        8'h72: hex_out <= sseg_2;  // 2
+        8'h7A: hex_out <= sseg_3;  // 3
+        8'h6B: hex_out <= sseg_4;  // 4
+        8'h73: hex_out <= sseg_5;  // 5
+        8'h74: hex_out <= sseg_6;  // 6
+        8'h6C: hex_out <= sseg_7;  // 7
+        8'h75: hex_out <= sseg_8;  // 8
+        8'h7D: hex_out <= sseg_9;  // 9
+        8'h70: hex_out <= sseg_0;  // 0
+
+        8'h5A: hex_out <= sseg_enter; // enter
+        8'h29: hex_out <= sseg_space; // space
+        default: hex_out <= 14'hFF;
+    endcase
+end
+
+always HEX0 <= hex_out[7:0];
+always HEX1 <= hex_out[13:8];
+assign HEX2 = 7'b1111111; // not using hex2,3,4,5
+assign HEX3 = 7'b1111111;
+assign HEX4 = 7'b1111111;
+assign HEX5 = 7'b1111111;
+  
+endmodule
