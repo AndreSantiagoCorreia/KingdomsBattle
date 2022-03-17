@@ -58,9 +58,11 @@ int main(){
     bool roundbegin = true;
     int round_buff_id = -1; // not initialized
 
+    int player_num_alive = playerNum;
+
     ////////////////////////////////////////////////////
     // game play in round
-    while(round < max_round){
+    while(round < max_round && player_num_alive > 1){
         // do something with keyboard
         if (roundbegin) {
             roundbegin = false;
@@ -95,7 +97,7 @@ int main(){
                             scanf("%d", &opid);
 
                             if (opid == i || opid < 0 || opid >= playerNum)
-                                printf("Another one! \n");
+                                printf("Another one! \n"); //hoh
 
                         }
                         printf("Ultimate 3 is activated! \n");
@@ -156,7 +158,7 @@ int main(){
                 int index = 0;
 
                 // currently, can draw out multiple same card !!!
-                while (index < 3) {
+                while (index < 3) { // if the card is less than 3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     int card_index = (rand() + (int) time(NULL)) % card_num; // 0 - 12, need a better random?
                     if (current_player->cards[card_index].valid == true) {
                         current_card_deck[index] = current_player->cards[card_index]; // append the card to the array, new copies
@@ -250,7 +252,21 @@ int main(){
                 // Timer works well now
                 out_of_time:
 
+                // Check for number of players alive
+                int num_alive = 0;
+                for (int i = 0; i < playerNum; i++){
+                    if (player_array[i].alive){
+                        num_alive++;
+                    }
+                }
+
+                player_num_alive = num_alive;
+
                 free(current_card_deck);
+
+                if (player_num_alive <= 1){
+                    goto game_finished;
+                }
 
                 break;
             }
@@ -280,6 +296,21 @@ int main(){
             }
         }
     }
+
+game_finished:
+    printf("Game finished!");
+
+    int winner_index = 0;
+
+    for (int i = 0; i < playerNum; i++){
+        if (player_array[i].alive){
+            winner_index = i;
+        }
+    }
+
+    struct player* winner = &player_array[winner_index];
+
+    printf("Winner is %d", winner -> player_ID);
 
     return 0;
 }
