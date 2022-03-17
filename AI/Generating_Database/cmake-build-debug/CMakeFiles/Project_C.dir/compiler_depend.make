@@ -119,8 +119,7 @@ CMakeFiles/Project_C.dir/input_test_out.c.obj: ../input_test_out.c \
   C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/x86_64-w64-mingw32/include/sys/timeb.h \
   C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/x86_64-w64-mingw32/include/sec_api/sys/timeb_s.h \
   C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/x86_64-w64-mingw32/include/pthread_time.h \
-  C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/lib/gcc/x86_64-w64-mingw32/11.2.0/include/stdbool.h \
-  ../input_test.h
+  C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/lib/gcc/x86_64-w64-mingw32/11.2.0/include/stdbool.h
 
 CMakeFiles/Project_C.dir/main.c.obj: ../main.c \
   C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/x86_64-w64-mingw32/include/stdlib.h \
@@ -309,8 +308,6 @@ C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/lib/gcc/x86_64-w64-mingw32
 ../input_test_out.c:
 
 ../input_test_out.h:
-
-../input_test.h:
 
 C:/Program\ Files/JetBrains/CLion\ 2021.3.3/bin/mingw/lib/gcc/x86_64-w64-mingw32/11.2.0/include/stdint.h:
 

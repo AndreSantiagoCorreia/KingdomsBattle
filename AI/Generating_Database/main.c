@@ -39,11 +39,15 @@ int main(){
         struct player *player_array = malloc(playerNum * sizeof(struct player));
 
         // initialize players
-        for (int i = 0; i < playerNum; i++) {
+        for (int i = 0; i < playerNum; i++){
             player_array[i].cards = cardInitialization(i); //stores the pointers
             player_array[i].player_ID = i;
             player_array[i].health = 20;
-            player_array[i].shield = 0;
+            player_array[i].shield[0] = 0;
+            player_array[i].shield[1] = 0;
+            player_array[i].shield[2] = 0;
+            player_array[i].indexAdd = 0;
+            player_array[i].indexRemove = 1;
             player_array[i].time_limit = 0; // 20 seconds time limit
             player_array[i].alive = true;
 
@@ -102,7 +106,9 @@ int main(){
 
                             int opid = input_test_ult(-1, playerNum, i, player_array[i].player_ID);
 
-                            player_array[opid].shield = 0;
+                            player_array[opid].shield[0] = 0;
+                            player_array[opid].shield[1] = 0;
+                            player_array[opid].shield[2] = 0;
                             player_array[i].ultimate = 0;
                             printf("Ultimate 4 is activated! \n");
 
@@ -160,11 +166,20 @@ int main(){
                     // user choose card
                     //user_card_choice(current_player, current_card_deck);//
 
+                    input_test_record('h',  current_player -> health, current_player -> player_ID);
+                    input_test_record('s',  current_player -> shield[0] + current_player -> shield[1] + current_player -> shield[2], current_player -> player_ID);
+
+                    input_test_record('h',  player_array[(p_index + 1) % playerNum].health, player_array[(p_index + 1) % playerNum].player_ID);
+                    input_test_record('s',  player_array[(p_index + 1) % playerNum].shield[0] + player_array[(p_index + 1) % playerNum].shield[1] + player_array[(p_index + 1) % playerNum].shield[2], player_array[(p_index + 1) % playerNum].player_ID);
+
                     int index_user = -1;
                     int typeIn = input_test(0, 4, -1, current_player->player_ID);
                     index_user = typeIn - 1;
 
                     current_player->cardHolds = current_card_deck[index_user];
+
+                    input_test_record('c',  (current_player->cardHolds).card_ID, current_player -> player_ID);
+
                     printf("Card %d being chosen\n", (current_player->cardHolds).card_ID);
 
                     // choose an opponent
@@ -215,6 +230,10 @@ int main(){
                     break;
                 }
 
+                current_player -> shield[current_player -> indexRemove] = 0; // Remove the old shield
+                current_player -> indexAdd = (current_player -> indexAdd + 1) % 3;
+                current_player -> indexRemove = (current_player -> indexRemove + 1) % 3;
+
                 printf("End Round (player%d)\n\n", current_player->player_ID);
             }
 
@@ -249,7 +268,7 @@ int main(){
 
         for (int i = 0; i < playerNum; i++) {
             if (player_array[i].alive) {
-                point = player_array[i].health + player_array[i].shield;
+                point = player_array[i].health + player_array[i].shield[0] + player_array[i].shield[1] + player_array[i].shield[2];
                 if (point > maxPoint) {
                     maxPoint = point;
                     winner_index = i;
@@ -346,11 +365,10 @@ void ultimateInitialization(struct player* players){
 
     int ult;
     for (int i = 0; i < playerNum; i++){
-        printf("u100\n");
-        ult = input_test(0, ult_num + 1, -1, players[i].player_ID);
-        printf("u101\n");
 
-        players[i].ultimate = ult;
+        players[i].ultimate = (rand() + (int) time(NULL)) % ult_num;;
+
+        input_test_record('u',  players[i].ultimate, players[i].player_ID);
 
         if (players[i].ultimate == 2){
             players[i].health = 30;

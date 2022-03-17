@@ -1,7 +1,5 @@
 #include "input_test_out.h"
 
-#include "input_test.h"
-
 void input_test_begin(int count){
     FILE *fptr = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Generating_Database\\database.txt","a");
 
@@ -117,4 +115,51 @@ int input_test_ult(int lower_bound, int upper_bound, int not_allowed, int player
     fclose(fptr);
 
     return num;
+}
+
+void input_test_record(char mode, int num, int player_id){
+    FILE *fptr = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Generating_Database\\database.txt","a");
+
+    if (mode == 'u'){
+        char playerString[17] = "GiveUltPlayer";
+        char player_id_buffer[2];
+        itoa(player_id, player_id_buffer, 10);
+        strcat(playerString, player_id_buffer);
+        strcat(playerString, ": ");
+        fprintf(fptr, "%s", playerString);
+
+        fprintf(fptr, "%d\n", num);
+    }
+    else if(mode == 'c'){
+        char playerString[10] = "Player";
+        char player_id_buffer[2];
+        itoa(player_id, player_id_buffer, 10);
+        strcat(playerString, player_id_buffer);
+        strcat(playerString, ": ");
+        fprintf(fptr, "%s", playerString);
+
+        fprintf(fptr, "%d\n", num);
+    }
+    else if(mode == 's'){
+        char playerString[11] = "SPlayer";
+        char player_id_buffer[2];
+        itoa(player_id, player_id_buffer, 10);
+        strcat(playerString, player_id_buffer);
+        strcat(playerString, ": ");
+        fprintf(fptr, "%s", playerString);
+
+        fprintf(fptr, "%d\n", num);
+    }
+    else if(mode == 'h'){
+        char playerString[11] = "HPlayer";
+        char player_id_buffer[2];
+        itoa(player_id, player_id_buffer, 10);
+        strcat(playerString, player_id_buffer);
+        strcat(playerString, ": ");
+        fprintf(fptr, "%s", playerString);
+
+        fprintf(fptr, "%d\n", num);
+    }
+
+    fclose(fptr);
 }

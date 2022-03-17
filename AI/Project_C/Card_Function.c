@@ -14,22 +14,22 @@ void card_simple_attack(int damage, struct player* _player){
         damage = 0;
     }
 
-    int remain_damage;
+    int remain_damage = 0;
 
     _player -> shield[_player -> indexRemove] = _player -> shield[_player -> indexRemove] - damage;
-    if (_player -> shield[_player -> indexRemove] < 0){
+    if (_player -> shield[_player -> indexRemove] <= 0){
         remain_damage = 0 - _player -> shield[_player -> indexRemove];
         _player -> shield[_player -> indexRemove] = 0;
 
         if (remain_damage > 0){
             _player -> shield[(_player -> indexRemove + 1) % 3] = _player -> shield[(_player -> indexRemove + 1) % 3] - damage;
-            if(_player -> shield[(_player -> indexRemove + 1) % 3] < 0){
+            if(_player -> shield[(_player -> indexRemove + 1) % 3] <= 0){
                 remain_damage = 0 - _player -> shield[(_player -> indexRemove + 1) % 3];
                 _player -> shield[(_player -> indexRemove + 1) % 3] = 0;
 
                 if (remain_damage > 0){
                     _player -> shield[(_player -> indexRemove + 2) % 3] = _player -> shield[(_player -> indexRemove + 2) % 3] - damage;
-                    if(_player -> shield[(_player -> indexRemove + 2) % 3] < 0) {
+                    if(_player -> shield[(_player -> indexRemove + 2) % 3] <= 0) {
                         remain_damage = 0 - _player->shield[(_player->indexRemove + 2) % 3];
                         _player->shield[(_player->indexRemove + 2) % 3] = 0;
                     }
@@ -54,9 +54,11 @@ void card_simple_attack(int damage, struct player* _player){
 }
 
 void card_simple_defence(int shield, struct player* _player){
-    _player -> shield[_player -> indexAdd] = shield;
+    _player -> shield[_player -> indexAdd] = shield + _player -> shield[_player -> indexAdd];
 
     printf("Player%d receives %d shield\n", _player -> player_ID, shield);
+
+    printf("Shield: %d %d %d\n", _player -> shield[0], _player -> shield[1], _player -> shield[2]);
 
     printf("\n");
     printf("Player%d:\n    Shield: %d\n    Health: %d\n", _player -> player_ID, _player -> shield[0] + _player -> shield[1] + _player -> shield[2], _player -> health);

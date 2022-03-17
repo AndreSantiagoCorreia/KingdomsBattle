@@ -11,10 +11,10 @@
 #define card_deck_num 3
 #define round_buff_num 4
 
-#define test_loop 50000
-
 #define TIME_UP 20000
 #define ult_num 4 // need to be less than
+
+#define test_loop 50000
 
 #ifndef _DATAH_
 #define _DATAH_
@@ -34,7 +34,9 @@ struct player{
     int player_ID;
     int health; // initially 20
     clock_t time_limit; // need to work on it later
-    int shield;
+    int shield[3];
+    int indexAdd;
+    int indexRemove;
 
     // alive or not
     bool alive;

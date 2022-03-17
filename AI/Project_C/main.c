@@ -64,6 +64,8 @@ int main(){
 
     int player_num_alive = playerNum;
 
+    int num_alive = 0;
+
     ////////////////////////////////////////////////////
     // game play in round
     while(round < max_round && player_num_alive > 1){
@@ -131,7 +133,9 @@ int main(){
 
                         }
 
-                        player_array[opid].shield = 0;
+                        player_array[opid].shield[0] = 0;
+                        player_array[opid].shield[1] = 0;
+                        player_array[opid].shield[2] = 0;
                         player_array[i].ultimate = 0;
                         printf("Ultimate 4 is activated! \n");
 
@@ -257,7 +261,7 @@ int main(){
                 out_of_time:
 
                 // Check for number of players alive
-                int num_alive = 0;
+                num_alive = 0;
                 for (int i = 0; i < playerNum; i++){
                     if (player_array[i].alive){
                         num_alive++;
@@ -277,8 +281,12 @@ int main(){
 
             current_player -> shield[current_player -> indexRemove] = 0; // Remove the old shield
 
-            current_player -> indexAdd = (current_player -> indexAdd++) % 3;
-            current_player -> indexRemove = (current_player -> indexRemove++) % 3;
+            printf("1: %d\n", current_player -> indexAdd);
+
+            current_player -> indexAdd = (current_player -> indexAdd + 1) % 3;
+
+            printf("1: %d\n", current_player -> indexAdd);
+            current_player -> indexRemove = (current_player -> indexRemove + 1) % 3;
 
 
             printf("End Round (player%d)\n\n", current_player->player_ID);
@@ -311,10 +319,16 @@ game_finished:
     printf("Game finished!");
 
     int winner_index = 0;
+    int maxPoint = 0;
+    int point;
 
-    for (int i = 0; i < playerNum; i++){
-        if (player_array[i].alive){
-            winner_index = i;
+    for (int i = 0; i < playerNum; i++) {
+        if (player_array[i].alive) {
+            point = player_array[i].health + player_array[i].shield[0] + player_array[i].shield[1] + player_array[i].shield[2];
+            if (point > maxPoint) {
+                maxPoint = point;
+                winner_index = i;
+            }
         }
     }
 
@@ -391,7 +405,7 @@ void cardFunction(struct card _card, struct player* player, int round_buff_id){
 
 void ultimateInitialization(struct player* players){
     // I don't know why this doesnt show... ***
-    FILE* file = fopen("ult_description.txt", "r");
+    FILE* file = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Project_C\\ult_description.txt", "r");
     int c;
 
     if (file) {
@@ -402,12 +416,8 @@ void ultimateInitialization(struct player* players){
 
     int ult;
     for (int i = 0; i < playerNum; i++){
-        do {
-            printf("\nPlayer%d, choose your ultimate:", players[i].player_ID);
-            scanf("%d", &ult);
-        } while(ult < 0 || ult > ult_num);
 
-        players[i].ultimate = ult;
+        players[i].ultimate = (rand() + (int) time(NULL)) % ult_num;
 
         if (players[i].ultimate == 2){
             players[i].health = 30;

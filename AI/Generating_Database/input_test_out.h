@@ -12,5 +12,5 @@ int input_test(int lower_bound, int upper_bound, int not_allowed, int player_id)
 int input_test_ult(int lower_bound, int upper_bound, int not_allowed, int player_id);
 void input_test_end(int winner);
 
-
+void input_test_record(char mode, int num, int player_id);
 #endif //PROJECT_C_INPUT_TEST_OUT_H
