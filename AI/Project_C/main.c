@@ -414,7 +414,6 @@ void ultimateInitialization(struct player* players){
         fclose(file);
     }
 
-    int ult;
     for (int i = 0; i < playerNum; i++){
 
         players[i].ultimate = (rand() + (int) time(NULL)) % ult_num;
