@@ -131,7 +131,7 @@ void input_test_record(char mode, int num, int player_id){
         fprintf(fptr, "%d\n", num);
     }
     else if(mode == 'c'){
-        char playerString[10] = "Player";
+        char playerString[11] = "CPlayer";
         char player_id_buffer[2];
         itoa(player_id, player_id_buffer, 10);
         strcat(playerString, player_id_buffer);
