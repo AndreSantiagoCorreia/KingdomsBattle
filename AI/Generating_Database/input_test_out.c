@@ -160,6 +160,12 @@ void input_test_record(char mode, int num, int player_id){
 
         fprintf(fptr, "%d\n", num);
     }
+    else if(mode == 'r'){
+        char playerString[9] = "RBuff";
+        strcat(playerString, ": ");
+        fprintf(fptr, "%s", playerString);
+        fprintf(fptr, "%d\n", num);
+    }
 
     fclose(fptr);
 }

@@ -77,6 +77,8 @@ int main(){
                 round_buff_id = (rand() + (int) time(NULL)) % round_buff_num; // fake random..
                 printf("----------Round Buff %d----------\n", round_buff_id);
 
+                input_test_record('r',  round_buff_id, 0);
+
                 if (round_buff_id == 0) {
                     printf("All active ultimates are disabled in this round! \n");
                 } else {
