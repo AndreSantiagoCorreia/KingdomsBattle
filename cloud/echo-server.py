@@ -4,7 +4,7 @@ import socket
 import threading
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 23535# 65432  # Port to listen on (non-privileged ports are > 1023)
+PORT = 13535# 65432  # Port to listen on (non-privileged ports are > 1023)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -82,7 +82,7 @@ def handle(client):
                     break
             clients.remove(client)
             client.close()
-            broadcast(f'{nickname} left the server'.encode('ascii'))
+            print(f'{nickname} left the server'.encode('ascii'))
             nicknames.remove(nickname)
             break
 
@@ -100,8 +100,8 @@ def receive():
         else:
             # add client to the list
             client.send('NICK'.encode('ascii'))
-            nickname = client.recv(1024).decode('ascii')
-            nickname = nickname[0:len(nickname)]
+            nickname = client.recv(1024).decode('ascii').rstrip("\x00") #Clean buffer sent from C file
+            nickname = nickname[0:len(nickname) - 1] #Clean buffer sent from C file
             nicknames.append(nickname)
             clients.append(client)
             if len(waitingMM) == 0:
@@ -114,8 +114,8 @@ def receive():
                 createRooms(index1, index2)
 
             print(f'Nickname is: {nickname}')
-            broadcast(f'{nickname} joined the server\n'.encode('ascii'))
-            client.send('Connected to the server'.encode('ascii'))
+            #broadcast(f'{nickname} joined the server\n'.encode('ascii'))
+            #client.send('Connected to the server'.encode('ascii'))
 
             thread = threading.Thread(target=handle, args=(client,))
             thread.start()

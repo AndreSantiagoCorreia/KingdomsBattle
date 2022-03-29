@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #define MAX 1024
-#define PORT 23535
+#define PORT 13535
 #define SA struct sockaddr
 void func(int sockfd)
 {
@@ -25,7 +25,6 @@ void func(int sockfd)
         n = 0;
         while ((buff[n++] = getchar()) != '\n')
             ;
-        printf("What im writing bro : %s", buff);
         write(sockfd, buff, sizeof(buff));
         bzero(buff, sizeof(buff));
         
