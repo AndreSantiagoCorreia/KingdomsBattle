@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include<conio.h>
-
 // other files
 #include "Keyboard.h"
 
@@ -180,6 +178,7 @@ int main(){
 
                     current_player->cardHolds = current_card_deck[index_user];
 
+                    // card being choosen
                     input_test_record('c',  (current_player->cardHolds).card_ID, current_player -> player_ID);
 
                     printf("Card %d being chosen\n", (current_player->cardHolds).card_ID);
@@ -237,6 +236,8 @@ int main(){
                 current_player -> indexRemove = (current_player -> indexRemove + 1) % 3;
 
                 printf("End Round (player%d)\n\n", current_player->player_ID);
+
+                input_test_end_round_p();
             }
 
             // keep the loop
@@ -248,6 +249,8 @@ int main(){
                     // all players used
                     round++;
                     roundbegin = true;
+
+                    input_test_end_round();
                 }
             } else {
                 p_index++;
@@ -257,6 +260,8 @@ int main(){
                     // all players used
                     round++;
                     roundbegin = true;
+
+                    input_test_end_round();
                 }
             }
         }
