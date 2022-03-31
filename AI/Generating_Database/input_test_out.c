@@ -36,6 +36,34 @@ void input_test_end(int winner){
     fclose(fptr);
 }
 
+void input_test_end_round_p(){
+    FILE *fptr = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Generating_Database\\database.txt","a");
+
+    if(fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+
+    fprintf(fptr, "%s\n", "-");
+
+    fclose(fptr);
+}
+
+void input_test_end_round(){
+    FILE *fptr = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Generating_Database\\database.txt","a");
+
+    if(fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+
+    fprintf(fptr, "%s\n", "-_-");
+
+    fclose(fptr);
+}
+
 int input_test(int lower_bound, int upper_bound, int not_allowed, int player_id){
 
     FILE *fptr = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Generating_Database\\database.txt","a");
