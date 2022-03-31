@@ -1,0 +1,441 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <time.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+// personal header file
+#include "Data_type.h"
+#include "Card_Function.h"
+#include "Keyboard.h"
+
+// keycodes used for game
+#define KEY_SPACE 0x29
+#define KEY_ENTER1 0x5A
+#define KEY_ENTER2 0xE05A
+#define KEY_UP 0xE075
+#define KEY_DOWN 0xE072
+#define KEY_LEFT 0xE06B
+#define KEY_RIGHT 0xE074
+
+// time limit
+#define TIME_LIMIT_CHOOSE_CARD 30000
+
+// functions for initialization
+int getPlayerNum(volatile int KEYCODE_ptr);
+struct player* playerInit(int playerID);
+struct card* cardInitialization(int player);
+void cardFunction(struct card _card, struct player* _player, int round_buff_id);
+void ultimateInitialization(struct player* players);
+
+// functions for rounds
+int chooseCard(bool* cardChosen);
+
+// global variable
+int playerNum;
+
+int main(){
+
+    //playerNum = getPlayerNum();
+    playerNum = 2; // default value, focusing on 2 players for now
+
+    struct player* player_array[playerNum];
+
+    // initialize players
+    for (int i = 0; i < playerNum; i++){
+        player_array[i] = playerInit(i);
+    }
+
+    // initialize ultimates
+    ultimateInitialization(player_array);
+
+    int p_index = 0;
+
+    int round = 0;
+    bool roundbegin = true;
+    int round_buff_id = -1; // not initialized
+
+    int player_num_alive = playerNum;
+
+    int num_alive = 0;
+
+    ////////////////////////////////////////////////////
+    // game play in round
+    while(round < max_round && player_num_alive > 1){
+        // do something with keyboard
+        if (roundbegin) {
+            roundbegin = false;
+            /////////////////Check for round buff/////////////////
+            round_buff_id = (rand() + (int) time(NULL)) % round_buff_num; // fake random..
+            printf("----------Round Buff %d----------\n", round_buff_id);
+
+            if (round_buff_id == 0){
+                printf("All active ultimates are disabled in this round! \n");
+            }
+            else {
+                if (round_buff_id == 3){
+                    p_index = playerNum - 1;
+                }
+                /////////////////Begin of the round/////////////////
+                /////////////////Check for ultimate 3 / 4(active)/////////////////
+                for (int i = 0; i < playerNum; i++) {
+                    if (player_array[i]->ultimate == 3) {
+                        printf("Player%d, press a number of the opponent to activate ultimate 3 in this round in 5 seconds \n",
+                               player_array[i]->player_ID);
+                        clock_t thetime = clock();
+
+                        int opid = -1;
+
+                        while (opid == i || opid < 0 || opid >= playerNum) {
+
+                            while (!kbhit()) {
+                                if (clock() - thetime > 5000) {
+                                    goto not_active;
+                                }
+                            }
+                            scanf("%d", &opid);
+
+                            if (opid == i || opid < 0 || opid >= playerNum)
+                                printf("Another one! \n"); //hoh
+
+                        }
+                        printf("Ultimate 3 is activated! \n");
+
+                        player_array[i]->ultimate = 300 * (opid + 5);
+
+                        not_active:
+                        continue;
+                    } else if (player_array[i]->ultimate == 4) {
+                        printf("Player%d, press a number of the opponent to activate ultimate 4 in this round in 5 seconds \n",
+                               player_array[i]->player_ID);
+                        clock_t thetime = clock();
+
+                        int opid = -1;
+
+                        while (opid == i || opid < 0 || opid >= playerNum) {
+
+                            while (!kbhit()) {
+                                if (clock() - thetime > 5000) {
+                                    goto not_active2;
+                                }
+                            }
+                            scanf("%d", &opid);
+
+                            if (opid == i || opid < 0 || opid >= playerNum)
+                                printf("Another one! \n");
+
+                        }
+
+                        player_array[opid]->shield[0] = 0;
+                        player_array[opid]->shield[1] = 0;
+                        player_array[opid]->shield[2] = 0;
+                        player_array[i]->ultimate = 0;
+                        printf("Ultimate 4 is activated! \n");
+
+                        not_active2:
+                        continue;
+                    }
+                }
+            }
+
+        }
+
+        struct player* current_player = player_array[p_index];
+
+        if (current_player -> alive) {
+            printf("Round %d(player%d)\n\n", round, current_player->player_ID);
+
+            current_player -> time_limit = clock(); // set current time to player
+
+            // randomly draw 3 cards from the card deck...
+            struct card *current_card_deck = malloc(card_deck_num * sizeof(struct card));
+
+            // if the player has ultimate 3... then
+
+            // probably need to update timer...
+            while (clock() - current_player->time_limit <= 20 && current_player->alive) {
+
+                // randomly choose 3 cards
+                int index = 0;
+
+                while (index < 3) { // if the card is less than 3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    int card_index = (rand() + (int) time(NULL)) % card_num; // 0 - 12, need a better random?
+                    if (current_player->cards[card_index].valid == true) {
+                        current_card_deck[index] = current_player->cards[card_index]; // append the card to the array, new copies
+                        current_player->cards[card_index].valid = false;
+
+                        printf("Card %d ---> Num%d\n", current_card_deck[index].card_ID, index + 1);
+
+                        index++;
+                    }
+                }
+
+                printf("\n");
+
+                // reset the true / false
+                index = 0;
+                while (index < 3) {
+                    current_player->cards[current_card_deck[index].card_ID].valid = true;
+                    index++;
+                }
+
+                ////////////////////////////////////////////////////
+                // user choose card
+                
+                printf("Please choose your card: \n");
+                bool* cardChosen = false;
+                int index_user = chooseCard(cardChosen);
+
+                if (cardChosen == false) goto out_of_time;
+
+                current_player -> cardHolds = current_card_deck[index_user];
+                printf("Card %d being chosen\n", (current_player -> cardHolds).card_ID);
+
+                /* SEND CARD CHOSEN TO OPPONENT */
+
+
+                ////////////////////////////////////////////////////
+                current_player -> objectID = index_user;
+
+                // Object directed
+                if (player_array[current_player -> objectID]->ultimate > 100){
+                    int opid = player_array[current_player -> objectID]->ultimate / 300 - 5;
+                    printf("Object directed from %d to %d! \n", current_player -> objectID, opid);
+                    current_player -> objectID = opid;
+                }
+
+                printf("Player%d chooses the card ", current_player->player_ID);
+                printf("%d, used on Player%d", (current_player->cardHolds).card_ID, current_player->objectID);
+                printf("\n");
+
+                cardFunction(current_player->cardHolds, player_array[current_player->objectID], round_buff_id); //...
+                sleep(1); // time to see status
+
+                // disable using card id
+                current_player->cards[(current_player->cardHolds).card_ID].valid = false;
+
+                // Timer works well now
+                out_of_time:
+
+                // Check for number of players alive
+                num_alive = 0;
+                for (int i = 0; i < playerNum; i++){
+                    if (player_array[i]->alive){
+                        num_alive++;
+                    }
+                }
+
+                player_num_alive = num_alive;
+
+                free(current_card_deck);
+
+                if (player_num_alive <= 1){
+                    goto game_finished;
+                }
+
+                break;
+            }
+
+            current_player -> shield[current_player -> indexRemove] = 0; // Remove the old shield
+
+            printf("1: %d\n", current_player -> indexAdd);
+
+            current_player -> indexAdd = (current_player -> indexAdd + 1) % 3;
+
+            printf("1: %d\n", current_player -> indexAdd);
+            current_player -> indexRemove = (current_player -> indexRemove + 1) % 3;
+
+
+            printf("End Round (player%d)\n\n", current_player->player_ID);
+        }
+
+        // keep the loop
+        if (round_buff_id == 3){
+            p_index--;
+            if (p_index < 0){
+                p_index = 0;
+
+                // all players used
+                round++;
+                roundbegin = true;
+            }
+        }
+        else {
+            p_index++;
+            if (p_index >= playerNum){
+                p_index = 0;
+
+                // all players used
+                round++;
+                roundbegin = true;
+            }
+        }
+    }
+
+game_finished:
+    printf("Game finished!");
+
+    int winner_index = 0;
+    int maxPoint = 0;
+    int point;
+
+    for (i = 0; i < playerNum; i++) {
+        if (player_array[i]->alive) {
+            point = player_array[i]->health + player_array[i]->shield[0] + player_array[i]->shield[1] + player_array[i]->shield[2];
+            if (point > maxPoint) {
+                maxPoint = point;
+                winner_index = i;
+            }
+        }
+    }
+
+    struct player* winner = player_array[winner_index];
+
+    printf("Winner is %d", winner -> player_ID);
+
+    return 0;
+}
+
+
+/* Game initialization functions */
+// int getPlayerNum() {
+
+// }
+
+struct player* playerInit(int playerID) {
+    struct player* player = malloc(sizeof(struct player));
+
+    player->cards = cardInitialization(playerID);
+    player->player_ID = playerID;
+    player->health = 20;
+    player->shield[0] = 0;
+    player->shield[1] = 0;
+    player->shield[2] = 0;
+    player->indexAdd = 0;
+    player->indexRemove = 1;
+    player->time_limit = 0;
+    player->alive = true;
+
+    return player;
+}
+
+struct card* cardInitialization(int playerID){
+    // array of cards
+    struct card* card_array = malloc((card_num + 1) * sizeof(struct card));
+
+    for (int i = 0; i < card_num; i++){
+        card_array[i].card_ID = i; // index
+        card_array[i].player_ID = playerID;
+        card_array[i].valid = true; // set card to valid
+    }
+
+    return card_array;
+}
+
+// now we suppose card 1 - 6 is damage card, 7 - 13 is difference card
+void cardFunction(struct card _card, struct player* player, int round_buff_id){
+    int attack_card_multiplier = 1;
+
+    if (round_buff_id == 2){
+        attack_card_multiplier = 2;
+    }
+
+    if (_card.card_ID == 1){
+        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+    }
+    else if (_card.card_ID == 2){
+        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+    }
+    else if (_card.card_ID == 3){
+        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+    }
+    else if (_card.card_ID == 4){
+        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+    }
+    else if (_card.card_ID == 5){
+        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+    }
+    else if (_card.card_ID == 6){
+        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+    }
+
+        // defensive card here
+    else if (_card.card_ID == 7){
+        card_simple_defence(_card.card_ID, player);
+    }
+    else if (_card.card_ID == 8){
+        card_simple_defence(_card.card_ID, player);
+    }
+    else if (_card.card_ID == 9){
+        card_simple_defence(_card.card_ID, player);
+    }
+    else if (_card.card_ID == 10){
+        card_simple_defence(_card.card_ID, player);
+    }
+    else if (_card.card_ID == 11){
+        card_simple_defence(_card.card_ID, player);
+    }
+    else if (_card.card_ID == 12){
+        card_simple_defence(_card.card_ID, player);
+    }
+    else if (_card.card_ID == 0){ // need to change
+        card_simple_defence(_card.card_ID, player);
+    }
+}
+
+void ultimateInitialization(struct player* players){
+    // I don't know why this doesnt show... ***
+    FILE* file = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Project_C\\ult_description.txt", "r");
+    int c;
+
+    if (file) {
+        while ((c = getc(file)) != EOF)
+            putchar(c);
+        fclose(file);
+    }
+
+    for (int i = 0; i < playerNum; i++){
+
+        players[i].ultimate = (rand() + (int) time(NULL)) % ult_num;
+
+        if (players[i].ultimate == 2){
+            players[i].health = 30;
+        }
+
+        printf("Player%d received ultimate %d!\n", players[i].player_ID, players[i].ultimate);
+    }
+
+}
+
+/* Functions for rounds */
+int chooseCard(bool *cardChosen) {
+    int cardIdx = 0;
+
+    clock_t start = clock();
+    unsigned int kbd = 0x0;
+
+    while (clock() - start > TIME_LIMIT_CHOOSE_CARD) {
+        kbd = getKeycode();
+
+        if (kbd == KEY_ENTER1 || kbd == KEY_ENTER2 || kbd == KEY_SPACE) {
+            break;
+        } else if (kbd == KEY_RIGHT) {
+            cardIdx = (cardIdx + 1) % 3;
+            *cardChosen = true;
+        } else if (kbd == KEY_LEFT) {
+            cardIdx = (cardIdx - 1) < 0 ? 4 : cardIdx - 1;
+            *cardChosen = true;
+        }
+    }
+
+    /* Used when we decided to use random card when player did not choose card */
+    // if (kbdPressed) {
+    //     return cardIdx;
+    // } else {
+    //     return rand()%3;
+    // }
+
+    return cardIdx;
+}
