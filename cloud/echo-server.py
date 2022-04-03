@@ -1,10 +1,12 @@
 # echo-server.py
 
+from random import randint
 import socket
 import threading
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 13535# 65432  # Port to listen on (non-privileged ports are > 1023)
+PORT = 23535# 65432  # Port to listen on (non-privileged ports are > 1023)
+MAXROUNDS = 10 #number of rounds that should be played
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -22,8 +24,27 @@ def broadcast(message):
 
 # Creates room and "isolate" two players for an 1v1 battle
 def createRooms(index1, index2):
-    print(f'Creating room: {nicknames[index1]} vs {nicknames[index2]}')
-    rooms.append( (clients[index1], clients[index2]) )
+    order = randint(0, 1)
+    if(order):
+        print(f'Creating room: {nicknames[index1]} vs {nicknames[index2]}')
+        #rooms.append( (clients[index1], clients[index2], 0))
+        rounds = 0
+        roundBuff = str(randint(0,2))
+        rooms.append( [clients[index1], clients[index2], rounds, roundBuff])
+        print(rooms[0][2])
+        clients[index1].send(f'You will start the round'.encode('ascii'))
+        clients[index1].send(f'{roundBuff}'.encode('ascii'))
+        #clients[index1].send(f'g'.encode('ascii'))
+    else:
+        print(f'Creating room: {nicknames[index2]} vs {nicknames[index1]}')
+        #rooms.append( (clients[index2], clients[index1], 0) )
+        rounds = 0
+        roundBuff = str(randint(0,2))
+        rooms.append( [clients[index2], clients[index1], rounds, roundBuff] )
+        print(rooms[0][2])
+        clients[index2].send(f'You will start the round'.encode('ascii'))
+        clients[index2].send(f'{roundBuff}'.encode('ascii'))
+        #clients[index2].send(f'g'.encode('ascii'))
     #rooms.append(clients[index2])
 
 # Sends a message to your opponent
@@ -34,18 +55,27 @@ def chat(message, client):
             if client in tuples:
                 if client == tuples[1]:
                     tuples[0].send(message)
+                    tuples[0].send(f'{tuples[3]}'.encode('ascii'))
+                    #tuples[0].send(f'g'.encode('ascii'))
+                    tuples[2] += 1
+                    #tuples[3] = str(randint(0,2))
+                    print(tuples[2])
+                    if tuples[2] == MAXROUNDS:
+                        endGame()
                     break
                 else:
-                    tuples[1].send(message) 
+                    tuples[1].send(message)
+                    tuples[1].send(f'{tuples[3]}'.encode('ascii'))
+                    tuples[3] = str(randint(0,2))
+                    #tuples[1].send(f'g'.encode('ascii')) 
                     break
-        #index = rooms.index(client)
-        #print("Room length: " + len(rooms))
-        #if index % 2 == 0:
-        #    rooms[index + 1].send(message)
-        #else:
-        #    rooms[index - 1].send(message)
     except:
         client.send(f'Waiting for available opponents...'.encode('ascii'))
+
+# Function to send signals that the game should now end
+def endGame():
+     print("Rounds limit reached")
+     return 0
 
 # Handle connections
 def handle(client):
@@ -63,7 +93,7 @@ def handle(client):
                     if client == tuples[0]:
                         if len(waitingMM) == 0:
                             waitingMM.append(tuples[1])
-                            tuples[1].send(f'Your Opponent has left the game... No opponent available...\n'.encode('ascii'))
+                            tuples[1].send(f'No opponent available... Your Opponent has left the game...'.encode('ascii'))
                         else:
                             index1 = clients.index(waitingMM[0])
                             waitingMM.remove(clients[index1])
@@ -72,7 +102,7 @@ def handle(client):
                     else:
                         if len(waitingMM) == 0:
                             waitingMM.append(tuples[0])
-                            tuples[0].send(f'Your Opponent has left the game... No opponent available...\n'.encode('ascii'))
+                            tuples[0].send(f'No opponent available... Your Opponent has left the game...'.encode('ascii'))
                         else:
                             index1 = clients.index(waitingMM[0])
                             waitingMM.remove(clients[index1])
@@ -91,7 +121,7 @@ def receive():
     while True:
         client, address = server.accept()
         print(f"Connected with {str(address)}")
-        client.send('SINGLE'.encode('ascii'))
+        client.send('SINGLEg'.encode('ascii'))
         string = client.recv(1024).decode('ascii')
         string = string[0]
         if string == "Y":
@@ -99,14 +129,14 @@ def receive():
             print("Starting AI...")
         else:
             # add client to the list
-            client.send('NICK'.encode('ascii'))
+            client.send('NICKg'.encode('ascii'))
             nickname = client.recv(1024).decode('ascii').rstrip("\x00") #Clean buffer sent from C file
             nickname = nickname[0:len(nickname) - 1] #Clean buffer sent from C file
             nicknames.append(nickname)
             clients.append(client)
             if len(waitingMM) == 0:
                 waitingMM.append(client)
-                client.send(f'No opponent available...\n'.encode('ascii'))
+                #client.send(f'No opponent available...'.encode('ascii'))
             else:
                 index1 = clients.index(waitingMM[0])
                 waitingMM.remove(clients[index1])
