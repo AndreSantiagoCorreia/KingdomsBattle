@@ -1,11 +1,96 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include <stdio.h>
-#include <time.h>
-#include <stdbool.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include "../address_map_arm.h"
 
-#include "Data_type.h"
+/* Prototypes for functions used to access physical memory addresses */
+unsigned int getKeycode(void);
+int open_physical (int);
+void * map_physical (int, unsigned int, unsigned int);
+void close_physical (int);
+int unmap_physical (void *, unsigned int);
 
-void user_card_choice(struct player* _player, struct card* current_card_deck);
-void user_object_choice(struct player* _player, int playerNum, struct player* player_array);
+unsigned int getKeycode(void)
+{
+   volatile int * KEYCODE_ptr;
+   volatile int * KEYCODE_RST_ptr;
+   int fd = -1;               // used to open /dev/mem for access to physical addresses
+   void *LW_virtual;          // used to map physical addresses for the light-weight bridge
+
+   // Create virtual memory access to the FPGA light-weight bridge
+   if ((fd = open_physical (fd)) == -1)
+      return (-1);
+   if ((LW_virtual = map_physical (fd, LW_BRIDGE_BASE, LW_BRIDGE_SPAN)) == NULL)
+      return (-1);
+
+   // Set virtual address pointer to I/O port
+   KEYCODE_ptr = (unsigned int *) (LW_virtual + 0x00000010);
+   KEYCODE_RST_ptr = (unsigned int *) (LW_virtual + 0x00000020);
+
+   while (1) {
+      unsigned int keycode = *KEYCODE_ptr;
+      if (keycode & 0x01000000) {
+        printf("keycode:%x \n", keycode - 0x01000000);
+        *KEYCODE_RST_ptr = 0x00000001;
+        usleep(1000);
+        *KEYCODE_RST_ptr = 0x00000000;
+        break;
+      }
+      usleep(1000);
+   }
+
+   unmap_physical (LW_virtual, LW_BRIDGE_SPAN);   // release the physical-memory mapping
+   close_physical (fd);   // close /dev/mem
+   return keycode;
+}
+
+// Open /dev/mem, if not already done, to give access to physical addresses
+int open_physical (int fd)
+{
+   if (fd == -1)
+      if ((fd = open( "/dev/mem", (O_RDWR | O_SYNC))) == -1)
+      {
+         printf ("ERROR: could not open \"/dev/mem\"...\n");
+         return (-1);
+      }
+   return fd;
+}
+
+// Close /dev/mem to give access to physical addresses
+void close_physical (int fd)
+{
+   close (fd);
+}
+
+/*
+ * Establish a virtual address mapping for the physical addresses starting at base, and
+ * extending by span bytes.
+ */
+void* map_physical(int fd, unsigned int base, unsigned int span)
+{
+   void *virtual_base;
+
+   // Get a mapping from physical addresses to virtual addresses
+   virtual_base = mmap (NULL, span, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, base);
+   if (virtual_base == MAP_FAILED)
+   {
+      printf ("ERROR: mmap() failed...\n");
+      close (fd);
+      return (NULL);
+   }
+   return virtual_base;
+}
+
+/*
+ * Close the previously-opened virtual address mapping
+ */
+int unmap_physical(void * virtual_base, unsigned int span)
+{
+   if (munmap (virtual_base, span) != 0)
+   {
+      printf ("ERROR: munmap() failed...\n");
+      return (-1);
+   }
+   return 0;
+}

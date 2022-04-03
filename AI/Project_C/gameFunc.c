@@ -29,7 +29,7 @@
 struct player* playerInit(int playerID);
 struct card* cardInit(int playerID);
 void ultimateInit(struct player* players);
-void calcHealth(int card_ID, struct player* player, int round_buff_id);
+void cardFunction(int card_ID, struct player* player, int round_buff_id);
 int chooseCard(struct player* currPlayer);
 
 
@@ -54,10 +54,14 @@ int main() {
 
     // 3. initialize ultimate
     ultimateInit(player_array[myID]);
+    // FROM SERVER: GET ULTIMATE NUMBER FOR OPPONENT
+    // SEND TO VGA: ult info 
 
     /* GAME START */
     for (int round = 0; round < max_round; round++) {
         printf("\n\n round %d \n\n", round);
+        // FROM SERVER: get round_buff
+        // SEND TO VGA: buff number
         round_buff = 0; // set for debugging; will get it from server
         struct player* currPlayer;
 
@@ -65,24 +69,26 @@ int main() {
             int myCard = chooseCard(player_array[myID]);
 
             // TO SERVER: SEND Card chosen
-            calcHealth(myCard, player_array[oppoID], round_buff);
+            cardFunction(myCard, player_array[oppoID], round_buff);
             printf("\n your remaining health: %d \n", player_array[myID]->health);
 
             // FROM SERVER: get cardID that opponent chose
             int opponentCard = (rand() + (int) time(NULL)) % card_num;
-            calcHealth(opponentCard, player_array[myID], round_buff);
+            // SEND TO VGA: enemy_card_visible (using random value between 0 to 1), enemy_card_used
+            cardFunction(opponentCard, player_array[myID], round_buff);
             printf("\n opponent remaining health: %d \n", player_array[oppoID]->health);
         } else {
             // FROM SERVER: get cardID that opponent chose
             int opponentCard = (rand() + (int) time(NULL)) % card_num; // set for debugging; will get it from server
-            calcHealth(opponentCard, player_array[myID], round_buff);
+            // SEND TO VGA: enemy_card_visible (using random value between 0 to 1), enemy_card_used
+            cardFunction(opponentCard, player_array[myID], round_buff);
             printf("\n opponent remaining health: %d \n", player_array[oppoID]->health);
 
             // My turn to choose card
             int myCard = chooseCard(player_array[myID]);
 
             // TO SERVER: SEND Card chosen
-            calcHealth(myCard, player_array[oppoID], round_buff);
+            cardFunction(myCard, player_array[oppoID], round_buff);
             printf("\n your remaining health: %d \n", player_array[myID]->health);
 
         }
@@ -157,23 +163,23 @@ void ultimateInit(struct player* player){
     player->ultimate = (rand() + (int) time(NULL)) % ult_num;
 
     if (player->ultimate == 2){
-        player->health = 30;
+        player->health = 25;
     }
 
     printf("Player%d received ultimate %d!\n", player->player_ID, player->ultimate);
 
 }
 
-void calcHealth(int card_ID, struct player* player, int round_buff_id){
+void cardFunction(int card_ID, struct player* player, int round_buff_id){
     // if player has round buff 2, attack point doubled
     int attack_card_multiplier = round_buff_id == 2 ? 2 : 1;
     int shield_multiplier = round_buff_id == 1 ? 2 : 1;
 
     // card from 0-6 is attack, 7-12 is defence
     if (card_ID <= 6){
-        card_simple_attack((card_ID * attack_card_multiplier)+1, player);
+        card_simple_attack(((card_ID+1) * attack_card_multiplier), player);
     } else {
-        card_simple_defence(card_ID * shield_multiplier, player);
+        card_simple_defence(((card_ID-6) * shield_multiplier), player);
     }
 }
 
@@ -194,6 +200,8 @@ int chooseCard(struct player* currPlayer) {
         }
     }
 
+    // SEND TO VGA: my_card_1, my_card_2, my_card_3
+
     printf("card on table for player %d\n", currPlayer->player_ID);
     for (int i = 0; i < 3; i++) {
         printf("Card %d: %d\n", i, cardOnTable[i]);
@@ -201,9 +209,11 @@ int chooseCard(struct player* currPlayer) {
 
     //int cardChosen = getCardFromKbd; //WHEN CONNECT TO KEYBOARD
     int cardChosen;
+    // SEND TO VGA: my_card_used, my_card_(cardChosen)'s MSB set to 0
     printf("choose your card (0-2): "); // for debugging before connects to server
     scanf("%d", &cardChosen);
     int myCard = cardOnTable[cardChosen];
+
 
     // set valid of used card to false
     currPlayer->cards[myCard].valid = false;
@@ -211,6 +221,7 @@ int chooseCard(struct player* currPlayer) {
     return myCard;
 }
 
+// todo: NEED TO WRITE TO timer register about the time
 // int getCardFromKbd() {
 //     int cardIdx = 0;
 //     bool cardChosen;
@@ -220,14 +231,16 @@ int chooseCard(struct player* currPlayer) {
 
 //     while (clock() - start > TIME_LIMIT_CHOOSE_CARD) {
 //         kbd = getKeycode();
-
+//
 //         if (kbd == KEY_ENTER1 || kbd == KEY_ENTER2 || kbd == KEY_SPACE) {
 //             break;
 //         } else if (kbd == KEY_RIGHT) {
 //             cardIdx = (cardIdx + 1) % 3;
+//             // todo: WRITE TO VGA (cardIdx & time)
 //             cardChosen = true;
 //         } else if (kbd == KEY_LEFT) {
 //             cardIdx = (cardIdx - 1) < 0 ? 4 : cardIdx - 1;
+//             // todo: WRITE TO VGA (cardIdx & time)
 //             cardChosen = true;
 //         }
 //     }

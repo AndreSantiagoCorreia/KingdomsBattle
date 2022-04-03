@@ -6,17 +6,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include<conio.h>
-
-// other files
-#include "Keyboard.h"
-
 // need to be changed
 #include "Data_type.h"
 #include "Card_Function.h"
-#include "ultimate_function.h"
+//#include "ultimate_function.h"
 
-// 13 cards
+struct player* playerInit(int playerID)
 struct card* cardInitialization(int player);
 void cardFunction(struct card _card, struct player* _player, int round_buff_id);
 void ultimateInitialization(struct player* players);
@@ -35,22 +30,11 @@ int main(){
         playerNum = player_num;
     }
 
-    struct player* player_array = malloc(playerNum * sizeof(struct player));
+    struct player* player_array[playerNum];
 
     // initialize players
     for (int i = 0; i < playerNum; i++){
-        player_array[i].cards = cardInitialization(i); //stores the pointers
-        player_array[i].player_ID = i;
-        player_array[i].health = 20;
-        player_array[i].shield[0] = 0;
-        player_array[i].shield[1] = 0;
-        player_array[i].shield[2] = 0;
-        player_array[i].indexAdd = 0;
-        player_array[i].indexRemove = 1;
-        player_array[i].time_limit = 0; // 20 seconds time limit
-        player_array[i].alive = true;
-
-        //player_array[i].cardHolds = malloc(sizeof(struct card));
+        player_array[i] = playerInit(i);
     }
 
     // initialize ultimates
@@ -322,7 +306,7 @@ game_finished:
     int maxPoint = 0;
     int point;
 
-    for (int i = 0; i < playerNum; i++) {
+    for (i = 0; i < playerNum; i++) {
         if (player_array[i].alive) {
             point = player_array[i].health + player_array[i].shield[0] + player_array[i].shield[1] + player_array[i].shield[2];
             if (point > maxPoint) {
@@ -339,6 +323,23 @@ game_finished:
     return 0;
 }
 
+struct player* playerInit(int playerID) {
+    struct player* player = malloc(sizeof(struct player));
+
+    player->cards = cardInitialization(playerID);
+    player->player_ID = playerID;
+    player->health = 20;
+    player->shield[0] = 0;
+    player->shield[1] = 0;
+    player->shield[2] = 0;
+    player->indexAdd = 0;
+    player->indexRemove = 1;
+    player->time_limit = 0;
+    player->alive = true;
+
+    return player;
+}
+
 struct card* cardInitialization(int playerID){
     // array of cards
     struct card* card_array = malloc((card_num + 1) * sizeof(struct card));
@@ -352,7 +353,7 @@ struct card* cardInitialization(int playerID){
     return card_array;
 }
 
-// now we suppose card 1 - 6 is damage card, 7 - 13 is difference card
+// now we suppose card 0 - 6 is damage card, 7 - 12 is difference card
 void cardFunction(struct card _card, struct player* player, int round_buff_id){
     int attack_card_multiplier = 1;
 
