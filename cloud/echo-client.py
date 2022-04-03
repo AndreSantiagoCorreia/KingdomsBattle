@@ -7,7 +7,7 @@ nickname = input("Choose a nickname: ")
 singleplayer = input("Do you wish to play singleplayer mode? (Y/N): ")
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', 22535))
+client.connect(('127.0.0.1', 13535))
 
 def receive():
     while True:
