@@ -1,6 +1,7 @@
 // personal header files
 #include "Data_type.h"
 #include "Card_Function.h"
+#include "vga.h"
 //#include "Keyboard.h"
 
 /* PARAMETERS */
@@ -24,7 +25,7 @@ struct player* playerInit(int playerID);
 struct card* cardInit(int playerID);
 void ultimateInit(struct player* players);
 void cardFunction(struct player* player, int card_ID, int buff_ID);
-int chooseCard(struct player* currPlayer);
+int chooseCard(struct player* currPlayer, int* MY_CARD_1_ptr, int* MY_CARD_2_ptr, int* MY_CARD_3_ptr, int* MY_CARD_USED_ptr);
 // int getCardFromKbd();
 
 /* FUNCTION IMPLEMENTATION */
@@ -71,7 +72,8 @@ void ultimateInit(struct player* player){
         fclose(file);
     }
 
-    player->ultimate = (rand() + (int) time(NULL)) % ult_num;
+    srand(time(NULL));
+    player->ultimate = rand() % ult_num;
 
     if (player->ultimate == 2){
         player->health = 30;
@@ -95,14 +97,17 @@ void cardFunction(struct player* player, int card_ID, int buff_ID){
 }
 
 /* Functions for rounds */
+//int chooseCard(struct player* currPlayer, int* MY_CARD_1_ptr, int* MY_CARD_2_ptr, int* MY_CARD_3_ptr, int* MY_CARD_USED_ptr) {
 int chooseCard(struct player* currPlayer) {
     // Draw 3 cards from deck
     int cardOnTable[3];
     int numDrew = 0;
 
+    srand(time(NULL));
+
     while (numDrew < 3) {
         // get random value between 0 and 12
-        int randCard = (rand() + (int) time(NULL)) % card_num;
+        int randCard = rand() % card_num;
         // if current player has not used cards[randCard] before put it on table
         if (currPlayer->cards[randCard].valid == true) {
             cardOnTable[numDrew] = currPlayer->cards[randCard].card_ID;
@@ -112,15 +117,31 @@ int chooseCard(struct player* currPlayer) {
         }
     }
 
+    // writeCard(MY_CARD_1_ptr, cardOnTable[0], true);
+    // writeCard(MY_CARD_2_ptr, cardOnTable[1], true);
+    // writeCard(MY_CARD_3_ptr, cardOnTable[2], true);
+
     printf("card on table for player %d\n", currPlayer->player_ID);
     for (int i = 0; i < 3; i++) {
-        printf("Card %d: %d\n", i, cardOnTable[i]);
+        printf("Card %d: ", i);
+        if (cardOnTable[i] <= 6) {
+            printf("attack with point %d", cardOnTable[i]+1);
+        } else {
+            printf("shield with point %d", cardOnTable[i]-6);
+        }
+        printf("\n");
     }
 
     //int cardChosen = getCardFromKbd; //WHEN CONNECT TO KEYBOARD
     int cardChosen;
     printf("choose your card (0-2): "); // for debugging before connects to server
     scanf("%d", &cardChosen);
+
+    // writeCard(MY_CARD_USED_ptr, cardOnTable[cardChosen], true);
+    // if (cardChosen == 0) writeCard(MY_CARD_1_ptr, cardOnTable[0], false);
+    // else if (cardChosen == 1) writeCard(MY_CARD_2_ptr, cardOnTable[1], false);
+    // else writeCard(MY_CARD_3_ptr, cardOnTable[2], false);
+
     int myCard = cardOnTable[cardChosen];
 
     // set valid of not picked cards to true
@@ -156,6 +177,7 @@ int chooseCard(struct player* currPlayer) {
 //     if (cardChosen) {
 //         return cardIdx;
 //     } else {
+//         srand(time(NULL));
 //         return rand()%3;
 //     }
 // }
