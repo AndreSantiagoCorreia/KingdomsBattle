@@ -70,7 +70,8 @@ def chat(message, client):
                     #tuples[1].send(f'g'.encode('ascii')) 
                     break
     except:
-        client.send(f'Waiting for available opponents...'.encode('ascii'))
+        print("Exception in chat method")
+        #client.send(f'Waiting for available opponents...'.encode('ascii'))
 
 # Function to send signals that the game should now end
 def endGame():
@@ -93,7 +94,7 @@ def handle(client):
                     if client == tuples[0]:
                         if len(waitingMM) == 0:
                             waitingMM.append(tuples[1])
-                            tuples[1].send(f'No opponent available... Your Opponent has left the game...'.encode('ascii'))
+                            #tuples[1].send(f'No opponent available... Your Opponent has left the game...'.encode('ascii'))
                         else:
                             index1 = clients.index(waitingMM[0])
                             waitingMM.remove(clients[index1])
@@ -102,7 +103,7 @@ def handle(client):
                     else:
                         if len(waitingMM) == 0:
                             waitingMM.append(tuples[0])
-                            tuples[0].send(f'No opponent available... Your Opponent has left the game...'.encode('ascii'))
+                            #tuples[0].send(f'No opponent available... Your Opponent has left the game...'.encode('ascii'))
                         else:
                             index1 = clients.index(waitingMM[0])
                             waitingMM.remove(clients[index1])
@@ -121,7 +122,7 @@ def receive():
     while True:
         client, address = server.accept()
         print(f"Connected with {str(address)}")
-        client.send('SINGLEg'.encode('ascii'))
+        client.send('SINGLE'.encode('ascii'))
         string = client.recv(1024).decode('ascii')
         string = string[0]
         if string == "Y":
@@ -129,7 +130,7 @@ def receive():
             print("Starting AI...")
         else:
             # add client to the list
-            client.send('NICKg'.encode('ascii'))
+            client.send('NICK'.encode('ascii'))
             nickname = client.recv(1024).decode('ascii').rstrip("\x00") #Clean buffer sent from C file
             nickname = nickname[0:len(nickname) - 1] #Clean buffer sent from C file
             nicknames.append(nickname)
