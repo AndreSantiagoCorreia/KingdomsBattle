@@ -47,26 +47,26 @@ int main() {
             int myCard = chooseCard(player_array[myID]);
 
             // TO SERVER: SEND Card chosen
-            cardFunction(myCard, player_array[oppoID], round_buff);
+            cardFunction(player_array[oppoID], myCard, round_buff);
             printf("\n your remaining health: %d \n", player_array[myID]->health);
 
             // FROM SERVER: get cardID that opponent chose
             int opponentCard = (rand() + (int) time(NULL)) % card_num;
             // SEND TO VGA: enemy_card_visible (using random value between 0 to 1), enemy_card_used
-            cardFunction(opponentCard, player_array[myID], round_buff);
+            cardFunction(player_array[myID], opponentCard, round_buff);
             printf("\n opponent remaining health: %d \n", player_array[oppoID]->health);
         } else {
             // FROM SERVER: get cardID that opponent chose
             int opponentCard = (rand() + (int) time(NULL)) % card_num; // set for debugging; will get it from server
             // SEND TO VGA: enemy_card_visible (using random value between 0 to 1), enemy_card_used
-            cardFunction(opponentCard, player_array[myID], round_buff);
+            cardFunction(player_array[myID], opponentCard, round_buff);
             printf("\n opponent remaining health: %d \n", player_array[oppoID]->health);
 
             // My turn to choose card
             int myCard = chooseCard(player_array[myID]);
 
             // TO SERVER: SEND Card chosen
-            cardFunction(myCard, player_array[oppoID], round_buff);
+            cardFunction(player_array[oppoID], myCard, round_buff);
             printf("\n your remaining health: %d \n", player_array[myID]->health);
 
         }

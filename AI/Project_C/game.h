@@ -71,7 +71,8 @@ void ultimateInit(struct player* player){
         fclose(file);
     }
 
-    player->ultimate = (rand() + (int) time(NULL)) % ult_num;
+    srand(time(NULL));
+    player->ultimate = rand() % ult_num;
 
     if (player->ultimate == 2){
         player->health = 30;
@@ -100,9 +101,11 @@ int chooseCard(struct player* currPlayer) {
     int cardOnTable[3];
     int numDrew = 0;
 
+    srand(time(NULL));
+
     while (numDrew < 3) {
         // get random value between 0 and 12
-        int randCard = (rand() + (int) time(NULL)) % card_num;
+        int randCard = rand() % card_num;
         // if current player has not used cards[randCard] before put it on table
         if (currPlayer->cards[randCard].valid == true) {
             cardOnTable[numDrew] = currPlayer->cards[randCard].card_ID;
@@ -114,7 +117,13 @@ int chooseCard(struct player* currPlayer) {
 
     printf("card on table for player %d\n", currPlayer->player_ID);
     for (int i = 0; i < 3; i++) {
-        printf("Card %d: %d\n", i, cardOnTable[i]);
+        printf("Card %d: ", i);
+        if (cardOnTable[i] <= 6) {
+            printf("attack with point %d", cardOnTable[i]+1);
+        } else {
+            printf("shield with point %d", cardOnTable[i]-6);
+        }
+        printf("\n");
     }
 
     //int cardChosen = getCardFromKbd; //WHEN CONNECT TO KEYBOARD
@@ -156,6 +165,7 @@ int chooseCard(struct player* currPlayer) {
 //     if (cardChosen) {
 //         return cardIdx;
 //     } else {
+//         srand(time(NULL));
 //         return rand()%3;
 //     }
 // }
