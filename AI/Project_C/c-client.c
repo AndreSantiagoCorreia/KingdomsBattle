@@ -8,7 +8,7 @@
 
 // personal header files
 #include "game.h"
-#include "vga.h"
+//#include "vga.h"
 
 #define MAX 1024
 #define PORT 23535
@@ -125,7 +125,7 @@ void func(int sockfd)
             printf("OPPS CARD: %d", opponentCard);
             // if card is for attack opponent get effect, if card is for shield I get effect
             struct player* getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
-            cardFunction(opponentCard, getEffect, round_buff);
+            cardFunction(getEffect, opponentCard,  round_buff);
 
 
         } else {
@@ -143,7 +143,7 @@ void func(int sockfd)
             // TO SERVER: SEND Card chosen
             // if card is for attack opponent get effect, if card is for shield I get effect
             struct player* getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
-            cardFunction(myCard, getEffect, round_buff);
+            cardFunction(getEffect, myCard, round_buff);
             printf("\n your remaining health: %d \n", player_array[myID]->health);
 
             //writing our card of choice to the server:
