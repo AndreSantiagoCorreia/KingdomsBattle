@@ -1,6 +1,7 @@
 // personal header files
 #include "Data_type.h"
 #include "Card_Function.h"
+#include "vga.h"
 //#include "Keyboard.h"
 
 /* PARAMETERS */
@@ -24,7 +25,7 @@ struct player* playerInit(int playerID);
 struct card* cardInit(int playerID);
 void ultimateInit(struct player* players);
 void cardFunction(struct player* player, int card_ID, int buff_ID);
-int chooseCard(struct player* currPlayer);
+int chooseCard(struct player* currPlayer, int* MY_CARD_1_ptr, int* MY_CARD_2_ptr, int* MY_CARD_3_ptr, int* MY_CARD_USED_ptr);
 // int getCardFromKbd();
 
 /* FUNCTION IMPLEMENTATION */
@@ -96,6 +97,7 @@ void cardFunction(struct player* player, int card_ID, int buff_ID){
 }
 
 /* Functions for rounds */
+//int chooseCard(struct player* currPlayer, int* MY_CARD_1_ptr, int* MY_CARD_2_ptr, int* MY_CARD_3_ptr, int* MY_CARD_USED_ptr) {
 int chooseCard(struct player* currPlayer) {
     // Draw 3 cards from deck
     int cardOnTable[3];
@@ -115,6 +117,10 @@ int chooseCard(struct player* currPlayer) {
         }
     }
 
+    // writeCard(MY_CARD_1_ptr, cardOnTable[0], true);
+    // writeCard(MY_CARD_2_ptr, cardOnTable[1], true);
+    // writeCard(MY_CARD_3_ptr, cardOnTable[2], true);
+
     printf("card on table for player %d\n", currPlayer->player_ID);
     for (int i = 0; i < 3; i++) {
         printf("Card %d: ", i);
@@ -130,6 +136,12 @@ int chooseCard(struct player* currPlayer) {
     int cardChosen;
     printf("choose your card (0-2): "); // for debugging before connects to server
     scanf("%d", &cardChosen);
+
+    // writeCard(MY_CARD_USED_ptr, cardOnTable[cardChosen], true);
+    // if (cardChosen == 0) writeCard(MY_CARD_1_ptr, cardOnTable[0], false);
+    // else if (cardChosen == 1) writeCard(MY_CARD_2_ptr, cardOnTable[1], false);
+    // else writeCard(MY_CARD_3_ptr, cardOnTable[2], false);
+
     int myCard = cardOnTable[cardChosen];
 
     // set valid of not picked cards to true

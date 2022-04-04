@@ -8,10 +8,10 @@
 
 // personal header files
 #include "game.h"
-#include "vga.h"
+//#include "vga.h"
 
 #define MAX 1024
-#define PORT 23535
+#define PORT 13535
 #define SA struct sockaddr
 
 //Writes a message typed into the terminal to the server
@@ -22,6 +22,23 @@ void writeToServer(int sockfd, char * buff, int size );
 
 //Gets Player Nickname and if he wants to play vs AI
 void initializePlayer(int sockfd);
+
+/* POINTERS FOR VGA OUTPUT */
+// volatile int * CARD_SELECT_ptr;
+// volatile int * MY_CARD_1_ptr;
+// volatile int * MY_CARD_2_ptr;
+// volatile int * MY_CARD_3_ptr;
+// volatile int * MY_CARD_USED_ptr;
+// volatile int * ENEMY_CARD_USED_ptr;
+// volatile int * ENEMY_CARD_VISIBLE_ptr;
+// volatile int * MY_HP_ptr;
+// volatile int * MY_SHIELD_ptr;
+// volatile int * TIME_ptr;
+// volatile int * ROUND_ptr;
+// volatile int * ENEMY_HP_ptr;
+// volatile int * ENEMY_SHIELD_ptr;
+// volatile int * BUFF_ptr;
+// volatile int * ULT_INFO_ptr; 
 
 
 void func(int sockfd)
@@ -34,29 +51,147 @@ void func(int sockfd)
     bool isFirst; // tell who is chosing card first
     int myID;
     int oppoID;
-    int round_buff;
-
-    /* POINTERS FOR VGA OUTPUT */
-    // volatile int * CARD_SELECT_ptr;
-    // volatile int * MY_CARD_1_ptr;
-    // volatile int * MY_CARD_2_ptr;
-    // volatile int * MY_CARD_3_ptr;
-    // volatile int * MY_CARD_USED_ptr;
-    // volatile int * ENEMY_CARD_USED_ptr;
-    // volatile int * ENEMY_CARD_VISIBLE_ptr;
-    // volatile int * MY_HP_ptr;
-    // volatile int * MY_SHIELD_ptr;
-    // volatile int * TIME_ptr;
-    // volatile int * ROUND_ptr;
-    // volatile int * ENEMY_HP_ptr;
-    // volatile int * ENEMY_SHIELD_ptr;
-    // volatile int * BUFF_ptr;
-    // volatile int * ULT_INFO_ptr;    
+    int round_buff;   
 
     initializePlayer(sockfd);
 
     /* INITIALIZATION */
     // 0. map memory
+
+    // 1. FROM SERVER: get order
+    isFirst = false; //defaults to false
+    myID = isFirst ? 0 : 1; // if I play first, my Id is 0
+    oppoID = isFirst ? 1 : 0;
+
+    // 2. initialize player array
+    struct player* player_array[player_num];
+    for (int i = 0; i < player_num; i++) {
+        player_array[i] = playerInit(i);
+    }
+
+    // 3. initialize ultimate
+    ultimateInit(player_array[myID]);
+    // FROM SERVER: GET ULTIMATE NUMBER FOR OPPONENT
+    // SEND TO VGA: ult info
+
+    char oldRoundBuff;
+
+    //Start gaming (Gaming Loop)
+    for (;;) {
+        // Should contain the cards + ultimate played from opponent:
+        //1st round server lets you know if you are the first one to play
+        bzero(buff, sizeof(buff));
+        read(sockfd, buff, sizeof(buff));
+        printf("From Server : %s", buff);
+        
+        //start contains the round buff for the very first round for some python reason
+        char start = '\0';
+        //only get the start char when string received from sever is: "You will start the round"
+        if(strlen(buff) > 10) {
+            start = buff[strlen(buff)-1];
+        }
+        if ((strncmp(&start, "0", 1)) != 0 && (strncmp(&start, "1", 1)) != 0 && (strncmp(&start, "2", 1)) != 0) {
+            //should contain roundBuff number:
+            bzero(myRoundBuff, sizeof(myRoundBuff));
+            read(sockfd, myRoundBuff, sizeof(myRoundBuff));
+            //Regular round calculations should go here:
+            //buff contains opponent's card played and myRoundBuff contains round buff id******
+            int round_buff = *myRoundBuff-'0';
+
+            int opponentCard = atoi(buff);
+            srand(time(NULL));
+            int randOppCard = rand() % 3;
+            /*
+            if (randOppCard == 0) *ENEMY_CARD_VISIBLE_ptr = 0b110;
+            else if (randOppCard == 1) *ENEMY_CARD_VISIBLE_ptr = 0b101;
+            else *ENEMY_CARD_VISIBLE_ptr = 0b011;
+
+            writeCard(ENEMY_CARD_USED_ptr, opponentCard, true);
+             */
+            // if card is for attack opponent get effect, if card is for shield I get effect
+            struct player* getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+            if(isFirst) {
+                cardFunction(getEffect, opponentCard, oldRoundBuff);
+                oldRoundBuff = round_buff;
+                // *BUFF_ptr = round_buff;
+                // *MY_HP_ptr = player_array[myID]->health;
+                // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
+                // *ENEMY_HP_ptr = player_array[oppoID]->health;
+                // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
+                
+            } else {
+                cardFunction(getEffect, opponentCard, round_buff);
+                // *BUFF_ptr = round_buff;
+                // *MY_HP_ptr = player_array[myID]->health;
+                // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
+                // *ENEMY_HP_ptr = player_array[oppoID]->health;
+                // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
+            }
+
+            printf("myRoundBuff : %s\n", myRoundBuff);
+
+            //int myCard = chooseCard(player_array[myID], MY_CARD_1_ptr, MY_CARD_2_ptr, MY_CARD_3_ptr);
+            int myCard = chooseCard(player_array[myID]);
+
+            // if card is for attack opponent get effect, if card is for shield I get effect
+            getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
+            cardFunction(getEffect, myCard, round_buff);
+            // *BUFF_ptr = round_buff;
+            // *MY_HP_ptr = player_array[myID]->health;
+            // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
+            // *ENEMY_HP_ptr = player_array[oppoID]->health;
+            // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];            
+            printf("\n your remaining health: %d \n", player_array[myID]->health);
+
+            //writing our card of choice to the server:
+            char myCardString[MAX];
+            sprintf(myCardString, "%d", myCard);
+            writeToServer(sockfd, myCardString, sizeof(myCardString));
+
+            if (player_array[myID]->health <= 0 || player_array[oppoID]->health <= 0) {
+                //void writeToServer(int sockfd, char * buff, int size );
+                char gameEnded[MAX] = "gameEnded";
+                writeToServer(sockfd, gameEnded, sizeof(gameEnded));
+            }
+
+            // reset enemy card visibility on VGA
+            // *ENEMY_CARD_VISIBLE = 0b111;
+
+        } else {
+            //Means you are the first one to play!
+            printf("\nmyRoundBuff : %c\n", start);
+            //First round should go here:
+            //buff contains garbage and start contains the round buff id******
+            int round_buff = start-'0';
+            oldRoundBuff = round_buff;
+            // *BUFF_ptr = round_buff;
+            
+            isFirst = true;
+            myID = isFirst ? 0 : 1; // if I play first, my Id is 0
+            oppoID = isFirst ? 1 : 0;
+
+            int myCard = chooseCard(player_array[myID]);
+            // if card is for attack opponent get effect, if card is for shield I get effect
+            struct player* getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
+            cardFunction(getEffect, myCard, round_buff);
+            printf("\n your remaining health: %d \n", player_array[myID]->health);
+
+            //writing our card of choice to the server:
+            char myCardString[MAX];
+            sprintf(myCardString, "%d", myCard);
+            writeToServer(sockfd, myCardString, sizeof(myCardString));
+        }
+        
+        //writing our card of choice to the server:
+        //char myCardString[MAX];
+        //sprintf(myCardString, "%d", myCard);
+        //terminalToServer(sockfd, buff, n, sizeof(buff));
+    }
+}
+   
+int main()
+{
+    /* map memory */
     // int fd = -1;               // used to open /dev/mem for access to physical addresses
     // void *LW_virtual;          // used to map physical addresses for the light-weight bridge
 
@@ -82,96 +217,6 @@ void func(int sockfd)
     // BUFF_ptr = (unsigned int *) (LW_virtual + 0x00000100);
     // ULT_INFO_ptr = (unsigned int *) (LW_virtual + 0x00000110);
 
-    // 1. FROM SERVER: get order
-    isFirst = false; //defaults to false
-    myID = isFirst ? 0 : 1; // if I play first, my Id is 0
-    oppoID = isFirst ? 1 : 0;
-
-    // 2. initialize player array
-    struct player* player_array[player_num];
-    for (int i = 0; i < player_num; i++) {
-        player_array[i] = playerInit(i);
-    }
-
-    // 3. initialize ultimate
-    ultimateInit(player_array[myID]);
-    // FROM SERVER: GET ULTIMATE NUMBER FOR OPPONENT
-    // SEND TO VGA: ult info
-
-    //Start gaming (Gaming Loop)
-    for (;;) {
-        // Should contain the cards + ultimate played from opponent:
-        //1st round server lets you know if you are the first one to play
-        bzero(buff, sizeof(buff));
-        read(sockfd, buff, sizeof(buff));
-        printf("From Server : %s", buff);
-        
-        //start contains the round buff for the very first round for some python reason
-        char start = '\0';
-        //only get the start char when string received from sever is: "You will start the round"
-        if(strlen(buff) > 10) {
-            start = buff[strlen(buff)-1];
-        }
-        if ((strncmp(&start, "0", 1)) != 0 && (strncmp(&start, "1", 1)) != 0 && (strncmp(&start, "2", 1)) != 0) {
-            //should contain roundBuff number:
-            bzero(myRoundBuff, sizeof(myRoundBuff));
-            read(sockfd, myRoundBuff, sizeof(myRoundBuff));
-            printf("myRoundBuff : %s\n", myRoundBuff);
-            //Regular round calculations should go here:
-            //buff contains opponent's card played and myRoundBuff contains round buff id******
-            int round_buff = *myRoundBuff-'0';
-
-            int opponentCard = atoi(buff);
-            printf("OPPS CARD: %d", opponentCard);
-            // if card is for attack opponent get effect, if card is for shield I get effect
-            struct player* getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
-            cardFunction(getEffect, opponentCard, round_buff);
-
-            int myCard = chooseCard(player_array[myID]);
-            // TO SERVER: SEND Card chosen
-            // if card is for attack opponent get effect, if card is for shield I get effect
-            getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
-            cardFunction(getEffect, myCard, round_buff);
-            printf("\n your remaining health: %d \n", player_array[myID]->health);
-
-            //writing our card of choice to the server:
-            char myCardString[MAX];
-            sprintf(myCardString, "%d", myCard);
-            writeToServer(sockfd, myCardString, sizeof(myCardString));
-
-        } else {
-            //Means you are the first one to play!
-            printf("\nmyRoundBuff : %c\n", start);
-            //First round should go here:
-            //buff contains garbage and start contains the round buff id******
-            int round_buff = start-'0';
-            
-            isFirst = true;
-            myID = isFirst ? 0 : 1; // if I play first, my Id is 0
-            oppoID = isFirst ? 1 : 0;
-
-            int myCard = chooseCard(player_array[myID]);
-            // TO SERVER: SEND Card chosen
-            // if card is for attack opponent get effect, if card is for shield I get effect
-            struct player* getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
-            cardFunction(getEffect, myCard, round_buff);
-            printf("\n your remaining health: %d \n", player_array[myID]->health);
-
-            //writing our card of choice to the server:
-            char myCardString[MAX];
-            sprintf(myCardString, "%d", myCard);
-            writeToServer(sockfd, myCardString, sizeof(myCardString));
-        }
-        
-        //writing our card of choice to the server:
-        //char myCardString[MAX];
-        //sprintf(myCardString, "%d", myCard);
-        terminalToServer(sockfd, buff, n, sizeof(buff));
-    }
-}
-   
-int main()
-{
     int sockfd, connfd;
     struct sockaddr_in servaddr, cli;
     // socket create and verification

@@ -62,3 +62,11 @@ int unmap_physical(void * virtual_base, unsigned int span)
    }
    return 0;
 }
+
+void writeCard(int * card_addr, int cardID, bool visible) {
+   unsigned int card = visible ? 0x80 : 0;
+   card += cardID <= 6 ? 0 : 1;
+   card += cardID <= 6 ? (cardID+1) << 1 : (cardID-6) << 1;
+   *card_addr = card; 
+}
+

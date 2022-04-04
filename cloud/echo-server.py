@@ -5,7 +5,7 @@ import socket
 import threading
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 23535# 65432  # Port to listen on (non-privileged ports are > 1023)
+PORT = 13535# 65432  # Port to listen on (non-privileged ports are > 1023)
 MAXROUNDS = 10 #number of rounds that should be played
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,16 +54,26 @@ def chat(message, client):
             #print(len(tuples))
             if client in tuples:
                 if client == tuples[1]:
+                    try:
+                        if message.decode('ascii').find("gameEnded") != -1:
+                            endGame(tuples[0], tuples[1])
+                    except:
+                        print("continue...")
                     tuples[0].send(message)
                     tuples[0].send(f'{tuples[3]}'.encode('ascii'))
                     #tuples[0].send(f'g'.encode('ascii'))
                     tuples[2] += 1
                     #tuples[3] = str(randint(0,2))
-                    print(tuples[2])
-                    if tuples[2] == MAXROUNDS:
-                        endGame()
+                    #print(tuples[2])
+                    if tuples[2] < MAXROUNDS:
+                        endGame(tuples[0], tuples[1])
                     break
                 else:
+                    try:
+                        if message.decode('ascii').find("gameEnded") != -1:
+                            endGame(tuples[0], tuples[1])
+                    except:
+                        print("continue...")
                     tuples[1].send(message)
                     tuples[1].send(f'{tuples[3]}'.encode('ascii'))
                     tuples[3] = str(randint(0,2))
@@ -74,8 +84,10 @@ def chat(message, client):
         #client.send(f'Waiting for available opponents...'.encode('ascii'))
 
 # Function to send signals that the game should now end
-def endGame():
-     print("Rounds limit reached")
+def endGame(client1, client2):
+     print("Rounds limit reached, closing room and clients")
+     client1.close()
+     client2.close()
      return 0
 
 # Handle connections
