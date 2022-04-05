@@ -11,7 +11,7 @@
 //#include "vga.h"
 
 #define MAX 1024
-#define PORT 13535
+#define PORT 53535
 #define SA struct sockaddr
 
 //Writes a message typed into the terminal to the server
@@ -70,11 +70,8 @@ void func(int sockfd)
         player_array[i] = playerInit(i);
     }
 
-    // 3. initialize ultimate
-    ultimateInit(player_array[myID]);
-    // SEND TO VGA: ult info
-
     char oldRoundBuff;
+    int ultInitialized = 0;
 
     //Start gaming (Gaming Loop)
     for (;;) {
@@ -82,7 +79,7 @@ void func(int sockfd)
         //1st round server lets you know if you are the first one to play
         bzero(buff, sizeof(buff));
         read(sockfd, buff, sizeof(buff));
-        printf("From Server : %s", buff);
+        printf("From Server : %s\n", buff);
         
         //start contains the round buff for the very first round for some python reason
         char start = '\0';
@@ -90,17 +87,28 @@ void func(int sockfd)
         if(strlen(buff) > 10) {
             start = buff[strlen(buff)-1];
         }
+
         if ((strncmp(&start, "0", 1)) != 0 && (strncmp(&start, "1", 1)) != 0 && (strncmp(&start, "2", 1)) != 0) {
+            if(!ultInitialized){
+                ultimateInit(player_array[myID]);
+                ultInitialized = 1;
+            }
             //should contain roundBuff number:
             bzero(myRoundBuff, sizeof(myRoundBuff));
             read(sockfd, myRoundBuff, sizeof(myRoundBuff));
             //Regular round calculations should go here:
             //buff contains opponent's card played and myRoundBuff contains round buff id******
-            int round_buff = *myRoundBuff-'0';
+            int round_buff = isFirst ? oldRoundBuff : *myRoundBuff-'0';
+            if (!isFirst) printf("myRoundBuff: %d\n", round_buff);
 
-            int opponentCard = atoi(buff[0]);
-            player_array[oppoID]->ultimate = atoi(buff[2]);
-            player_array[oppoID]->ultUseThisRound = atoi(buff[3]);
+            player_array[oppoID]->ultimate = atoi(&buff[0]);
+            player_array[oppoID]->ultUseThisRound = atoi(&buff[2]);
+            int opponentCard = atoi(&buff[4]);
+
+            if (player_array[oppoID]->ultimate == 2 && player_array[oppoID]->ultUseThisRound) {
+                player_array[oppoID]->health += 5;
+                player_array[oppoID]->ultUseThisRound = false;
+            }
         
             /* CHANGE VISIBILITY OF OPPONENT CARDS ON TABLE
             srand(time(NULL));
@@ -112,43 +120,36 @@ void func(int sockfd)
             writeCard(ENEMY_CARD_USED_ptr, opponentCard, true);
              */
 
-            if(isFirst) {
-                if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
-                    printf("I used ultimate 3; Duplicate opponent's attack\n");
-                    cardFunction(player_array[oppoID], opponentCard, round_buff);
-                    cardFunction(player_array[myID], opponentCard, round_buff);
+            if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
+                printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+                cardFunction(player_array[oppoID], opponentCard, round_buff);
+                cardFunction(player_array[myID], opponentCard, round_buff);
 
-                    player_array[oppoID]->ultimate = 0; // remove ultimate
-                    player_array[oppoID]->ultUseThisRound = false; // ultimate is already used
-                } else {
-                    getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
-                    cardFunction(getEffect, opponentCard, round_buff);
-                }
-
-                oldRoundBuff = round_buff;
-                // *BUFF_ptr = round_buff;
-                // *MY_HP_ptr = player_array[myID]->health;
-                // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
-                // *ENEMY_HP_ptr = player_array[oppoID]->health;
-                // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
-                
+                player_array[myID]->ultimate = 0; // remove ultimate
+                player_array[myID]->ultUseThisRound = false; // ultimate is already used
             } else {
-                if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
-                    printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
-                    cardFunction(player_array[oppoID], opponentCard, round_buff);
-                    cardFunction(player_array[myID], opponentCard, round_buff);
+                getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+                cardFunction(getEffect, opponentCard, round_buff);
+            }
+            
+            // *MY_HP_ptr = player_array[myID]->health;
+            // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
+            // *ENEMY_HP_ptr = player_array[oppoID]->health;
+            // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
+                
+            if (isFirst) {
+                round_buff = *myRoundBuff-'0';
+                oldRoundBuff = round_buff;
 
-                    player_array[myID]->ultimate = 0; // remove ultimate
-                    player_array[myID]->ultUseThisRound = false; // ultimate is already used
-                } else {
-                    getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
-                    cardFunction(getEffect, opponentCard, round_buff);
-                }
-                // *BUFF_ptr = round_buff;
-                // *MY_HP_ptr = player_array[myID]->health;
-                // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
-                // *ENEMY_HP_ptr = player_array[oppoID]->health;
-                // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
+                player_array[myID] -> shield[player_array[myID] -> indexRemove] = 0; // Remove the old shield
+                player_array[myID] -> indexAdd = (player_array[myID] -> indexAdd + 1) % 3;
+                player_array[myID] -> indexRemove = (player_array[myID] -> indexRemove + 1) % 3;
+                player_array[oppoID] -> shield[player_array[oppoID] -> indexRemove] = 0; // Remove the old shield
+                player_array[oppoID] -> indexAdd = (player_array[oppoID] -> indexAdd + 1) % 3;
+                player_array[oppoID] -> indexRemove = (player_array[oppoID] -> indexRemove + 1) % 3;
+
+                printf("player%d shield [%d %d %d]\n", myID, player_array[myID]->shield[0], player_array[myID]->shield[1], player_array[myID]->shield[2]);
+                printf("player%d shield [%d %d %d]\n", oppoID, player_array[oppoID]->shield[0], player_array[oppoID]->shield[1], player_array[oppoID]->shield[2]);
             }
 
             if (player_array[myID]->health <= 0 || player_array[oppoID]->health <= 0) {
@@ -182,14 +183,14 @@ void func(int sockfd)
             // if card is for attack opponent get effect, if card is for shield I get effect
             if (player_array[oppoID]->ultUseThisRound && player_array[oppoID]->ultimate == 3) {
                 printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
-                cardFunction(player_array[oppoID], opponentCard, round_buff);
-                cardFunction(player_array[myID], opponentCard, round_buff);
+                cardFunction(player_array[oppoID], myCard, round_buff);
+                cardFunction(player_array[myID], myCard, round_buff);
 
                 player_array[oppoID]->ultimate = 0; // remove ultimate
                 player_array[oppoID]->ultUseThisRound = false; // ultimate is already used
             } else {
-                getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
-                cardFunction(getEffect, opponentCard, round_buff);
+                getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
+                cardFunction(getEffect, myCard, round_buff);
             }
             // *BUFF_ptr = round_buff;
             // *MY_HP_ptr = player_array[myID]->health;
@@ -200,13 +201,27 @@ void func(int sockfd)
 
             //writing our card of choice to the server:
             char myCardString[MAX];
-            sprintf(myCardString, "%d %d %d", myCard, player_array[myID]->ultimate, player_array[myID]->ultUseThisRound);
+            sprintf(myCardString, "%d %d %d", player_array[myID]->ultimate, player_array[myID]->ultUseThisRound, myCard);
             writeToServer(sockfd, myCardString, sizeof(myCardString));
 
             if (player_array[myID]->health <= 0 || player_array[oppoID]->health <= 0) {
                 //void writeToServer(int sockfd, char * buff, int size );
                 char gameEnded[MAX] = "gameEnded";
                 writeToServer(sockfd, gameEnded, sizeof(gameEnded));
+            }
+        
+            // remove old shield
+            if (!isFirst) {
+                player_array[myID] -> shield[player_array[myID] -> indexRemove] = 0; // Remove the old shield
+                player_array[myID] -> indexAdd = (player_array[myID] -> indexAdd + 1) % 3;
+                player_array[myID] -> indexRemove = (player_array[myID] -> indexRemove + 1) % 3;
+                player_array[oppoID] -> shield[player_array[oppoID] -> indexRemove] = 0; // Remove the old shield
+                player_array[oppoID] -> indexAdd = (player_array[oppoID] -> indexAdd + 1) % 3;
+                player_array[oppoID] -> indexRemove = (player_array[oppoID] -> indexRemove + 1) % 3;
+
+                
+                printf("player%d shield [%d %d %d]\n", myID, player_array[myID]->shield[0], player_array[myID]->shield[1], player_array[myID]->shield[2]);
+                printf("player%d shield [%d %d %d]\n", oppoID, player_array[oppoID]->shield[0], player_array[oppoID]->shield[1], player_array[oppoID]->shield[2]);
             }
 
             // reset enemy card visibility on VGA
@@ -215,6 +230,9 @@ void func(int sockfd)
         } else {
             //Means you are the first one to play!
             printf("\nmyRoundBuff : %c\n", start);
+
+            printf("\n\nbuff: %s\n\n", buff);
+
             //First round should go here:
             //buff contains garbage and start contains the round buff id******
             int round_buff = start-'0';
@@ -224,6 +242,10 @@ void func(int sockfd)
             isFirst = true;
             myID = isFirst ? 0 : 1; // if I play first, my Id is 0
             oppoID = isFirst ? 1 : 0;
+
+            // 3. initialize ultimate
+            ultimateInit(player_array[myID]);
+            ultInitialized = 1;
 
             // if round_buff == 0 || ultimate <= 2 user do not have choice about ultimate
             if (round_buff != 0 && player_array[myID]->ultimate >= 3) {
@@ -256,7 +278,8 @@ void func(int sockfd)
 
             //writing our card of choice to the server:
             char myCardString[MAX];
-            sprintf(myCardString, "%d %d %d", myCard, player_array[myID]->ultimate, player_array[myID]->ultUseThisRound);
+            sprintf(myCardString, "%d %d %d", player_array[myID]->ultimate, player_array[myID]->ultUseThisRound, myCard);
+            player_array[myID]->ultUseThisRound = false;
             writeToServer(sockfd, myCardString, sizeof(myCardString));
         }
         

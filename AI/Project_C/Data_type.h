@@ -12,7 +12,7 @@
 #define round_buff_num 4
 
 #define TIME_UP 20000
-#define ult_num 4 // need to be less than
+#define ult_num 5 // need to be less than
 
 #ifndef _DATAH_
 #define _DATAH_
@@ -41,7 +41,7 @@ struct player{
 
     // Buff relevant
     int ultimate;
-    bool ultUseThisRound;
+    int ultUseThisRound;
 };
 
 #endif

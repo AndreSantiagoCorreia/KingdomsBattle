@@ -36,20 +36,14 @@ struct player* playerInit(int playerID) {
     struct player* player = malloc(sizeof(struct player));
 
     player->cards = cardInit(playerID);
-
     player->player_ID = playerID;
-
     player->health = 20;
-
     player->shield[0] = 0;
     player->shield[1] = 0;
     player->shield[2] = 0;
     player->indexAdd = 0;
     player->indexRemove = 1;
-
     player->alive = true;
-
-    player->ultUseThisRound = false;
 
     return player;
 }
@@ -68,16 +62,6 @@ struct card* cardInit(int playerID){
 }
 
 void ultimateInit(struct player* player){
-    // I don't know why this doesnt show... ***
-    FILE* file = fopen("C:\\Users\\23612\\Documents\\CPEN_391\\Module_2\\l2c-39\\AI\\Project_C\\ult_description.txt", "r");
-    int c;
-
-    if (file) {
-        while ((c = getc(file)) != EOF)
-            putchar(c);
-        fclose(file);
-    }
-
     srand(time(NULL));
     player->ultimate = rand() % ult_num;
 
@@ -97,7 +81,7 @@ void cardFunction(struct player* player, int card_ID, int buff_ID){
 
     // card from 0-6 is attack, 7-12 is defence
     if (card_ID <= 6){
-        card_simple_attack(((card_ID+1) * attack_card_multiplier), player);
+        card_simple_attack(((card_ID+1) * attack_card_multiplier), player, buff_ID);
     } else {
         card_simple_defence(((card_ID-6) * shield_multiplier), player);
     }
