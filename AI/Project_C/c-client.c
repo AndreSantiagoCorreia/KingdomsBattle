@@ -51,7 +51,8 @@ void func(int sockfd)
     bool isFirst; // tell who is chosing card first
     int myID;
     int oppoID;
-    int round_buff;   
+    int round_buff;  
+    struct player* getEffect; 
 
     initializePlayer(sockfd);
 
@@ -99,19 +100,32 @@ void func(int sockfd)
             int round_buff = *myRoundBuff-'0';
 
             int opponentCard = atoi(buff);
+            player_array[oppoID]->ultimate = 0;
+            player_array[oppoID]->ultUseThisRound = false;
+        
+            /* CHANGE VISIBILITY OF OPPONENT CARDS ON TABLE
             srand(time(NULL));
             int randOppCard = rand() % 3;
-            /*
             if (randOppCard == 0) *ENEMY_CARD_VISIBLE_ptr = 0b110;
             else if (randOppCard == 1) *ENEMY_CARD_VISIBLE_ptr = 0b101;
             else *ENEMY_CARD_VISIBLE_ptr = 0b011;
 
             writeCard(ENEMY_CARD_USED_ptr, opponentCard, true);
              */
-            // if card is for attack opponent get effect, if card is for shield I get effect
-            struct player* getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+
             if(isFirst) {
-                cardFunction(getEffect, opponentCard, oldRoundBuff);
+                if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
+                    printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+                    cardFunction(player_array[oppoID], opponentCard, round_buff);
+                    cardFunction(player_array[myID], opponentCard, round_buff);
+
+                    player_array[myID]->ultimate = 0; // remove ultimate
+                    player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                } else {
+                    getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+                    cardFunction(getEffect, opponentCard, round_buff);
+                }
+
                 oldRoundBuff = round_buff;
                 // *BUFF_ptr = round_buff;
                 // *MY_HP_ptr = player_array[myID]->health;
@@ -120,7 +134,17 @@ void func(int sockfd)
                 // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
                 
             } else {
-                cardFunction(getEffect, opponentCard, round_buff);
+                if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
+                    printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+                    cardFunction(player_array[oppoID], opponentCard, round_buff);
+                    cardFunction(player_array[myID], opponentCard, round_buff);
+
+                    player_array[myID]->ultimate = 0; // remove ultimate
+                    player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                } else {
+                    getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+                    cardFunction(getEffect, opponentCard, round_buff);
+                }
                 // *BUFF_ptr = round_buff;
                 // *MY_HP_ptr = player_array[myID]->health;
                 // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
@@ -128,9 +152,32 @@ void func(int sockfd)
                 // *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
             }
 
+            if (player_array[myID]->health <= 0 || player_array[oppoID]->health <= 0) {
+                //void writeToServer(int sockfd, char * buff, int size );
+                char gameEnded[MAX] = "gameEnded";
+                writeToServer(sockfd, gameEnded, sizeof(gameEnded));
+            }
+
             printf("myRoundBuff : %s\n", myRoundBuff);
 
             //int myCard = chooseCard(player_array[myID], MY_CARD_1_ptr, MY_CARD_2_ptr, MY_CARD_3_ptr);
+            // if round_buff == 0 && ultimate <= 2, user do not have choice about ultimate
+            if (round_buff != 0 && player_array[myID]->ultimate >= 3) {
+                printf("Will you use ultimate this round? (1:yes, 0:no) ");
+                scanf("%d", &player_array[myID]->ultUseThisRound); printf("\n");
+                if (player_array[myID]->ultUseThisRound) {
+                    // ultimate 4: disablt shield of opponent
+                    if (player_array[myID]->ultimate == 4) {
+                        player_array[oppoID]->shield[0] = 0;
+                        player_array[oppoID]->shield[1] = 0;
+                        player_array[oppoID]->shield[2] = 0;
+
+                        player_array[myID]->ultimate = 0; // remove ultimate
+                        player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                    }
+                }
+            }
+
             int myCard = chooseCard(player_array[myID]);
 
             // if card is for attack opponent get effect, if card is for shield I get effect
@@ -145,7 +192,7 @@ void func(int sockfd)
 
             //writing our card of choice to the server:
             char myCardString[MAX];
-            sprintf(myCardString, "%d", myCard);
+            sprintf(myCardString, "%d %d %d", myCard, player_array[myID]->ultimate, player_array[myID]->ultUseThisRound);
             writeToServer(sockfd, myCardString, sizeof(myCardString));
 
             if (player_array[myID]->health <= 0 || player_array[oppoID]->health <= 0) {
@@ -170,15 +217,38 @@ void func(int sockfd)
             myID = isFirst ? 0 : 1; // if I play first, my Id is 0
             oppoID = isFirst ? 1 : 0;
 
+            // if round_buff == 0 || ultimate <= 2 user do not have choice about ultimate
+            if (round_buff != 0 && player_array[myID]->ultimate >= 3) {
+                printf("Will you use ultimate this round? (1:yes, 0:no) ");
+                scanf("%d", &player_array[myID]->ultUseThisRound); printf("\n");
+                if (player_array[myID]->ultUseThisRound) {
+                    // ultimate 4: disablt shield of opponent
+                    if (player_array[myID]->ultimate == 4) {
+                        player_array[oppoID]->shield[0] = 0;
+                        player_array[oppoID]->shield[1] = 0;
+                        player_array[oppoID]->shield[2] = 0;
+
+                        player_array[myID]->ultimate = 0; // remove ultimate
+                        player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                    }
+                }
+            }
+
             int myCard = chooseCard(player_array[myID]);
             // if card is for attack opponent get effect, if card is for shield I get effect
-            struct player* getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
+            getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
             cardFunction(getEffect, myCard, round_buff);
             printf("\n your remaining health: %d \n", player_array[myID]->health);
 
+            if (player_array[myID]->health <= 0 || player_array[oppoID]->health <= 0) {
+                //void writeToServer(int sockfd, char * buff, int size );
+                char gameEnded[MAX] = "gameEnded";
+                writeToServer(sockfd, gameEnded, sizeof(gameEnded));
+            }
+
             //writing our card of choice to the server:
             char myCardString[MAX];
-            sprintf(myCardString, "%d", myCard);
+            sprintf(myCardString, "%d %d %d", myCard, player_array[myID]->ultimate, player_array[myID]->ultUseThisRound);
             writeToServer(sockfd, myCardString, sizeof(myCardString));
         }
         
