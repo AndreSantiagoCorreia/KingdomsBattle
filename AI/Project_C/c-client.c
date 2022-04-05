@@ -99,9 +99,9 @@ void func(int sockfd)
             //buff contains opponent's card played and myRoundBuff contains round buff id******
             int round_buff = *myRoundBuff-'0';
 
-            int opponentCard = atoi(buff);
-            player_array[oppoID]->ultimate = 0;
-            player_array[oppoID]->ultUseThisRound = false;
+            int opponentCard = atoi(buff[0]);
+            player_array[myID]->ultimate = atoi(buff[2]);
+            player_array[myID]->ultUseThisRound = atoi(buff[3]);
         
             /* CHANGE VISIBILITY OF OPPONENT CARDS ON TABLE
             srand(time(NULL));
