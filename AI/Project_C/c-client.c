@@ -72,7 +72,6 @@ void func(int sockfd)
 
     // 3. initialize ultimate
     ultimateInit(player_array[myID]);
-    // FROM SERVER: GET ULTIMATE NUMBER FOR OPPONENT
     // SEND TO VGA: ult info
 
     char oldRoundBuff;
@@ -100,8 +99,8 @@ void func(int sockfd)
             int round_buff = *myRoundBuff-'0';
 
             int opponentCard = atoi(buff[0]);
-            player_array[myID]->ultimate = atoi(buff[2]);
-            player_array[myID]->ultUseThisRound = atoi(buff[3]);
+            player_array[oppoID]->ultimate = atoi(buff[2]);
+            player_array[oppoID]->ultUseThisRound = atoi(buff[3]);
         
             /* CHANGE VISIBILITY OF OPPONENT CARDS ON TABLE
             srand(time(NULL));
@@ -115,12 +114,12 @@ void func(int sockfd)
 
             if(isFirst) {
                 if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
-                    printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+                    printf("I used ultimate 3; Duplicate opponent's attack\n");
                     cardFunction(player_array[oppoID], opponentCard, round_buff);
                     cardFunction(player_array[myID], opponentCard, round_buff);
 
-                    player_array[myID]->ultimate = 0; // remove ultimate
-                    player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                    player_array[oppoID]->ultimate = 0; // remove ultimate
+                    player_array[oppoID]->ultUseThisRound = false; // ultimate is already used
                 } else {
                     getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
                     cardFunction(getEffect, opponentCard, round_buff);
@@ -181,8 +180,17 @@ void func(int sockfd)
             int myCard = chooseCard(player_array[myID]);
 
             // if card is for attack opponent get effect, if card is for shield I get effect
-            getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
-            cardFunction(getEffect, myCard, round_buff);
+            if (player_array[oppoID]->ultUseThisRound && player_array[oppoID]->ultimate == 3) {
+                printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+                cardFunction(player_array[oppoID], opponentCard, round_buff);
+                cardFunction(player_array[myID], opponentCard, round_buff);
+
+                player_array[oppoID]->ultimate = 0; // remove ultimate
+                player_array[oppoID]->ultUseThisRound = false; // ultimate is already used
+            } else {
+                getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+                cardFunction(getEffect, opponentCard, round_buff);
+            }
             // *BUFF_ptr = round_buff;
             // *MY_HP_ptr = player_array[myID]->health;
             // *MY_SHIELD_ptr = player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
