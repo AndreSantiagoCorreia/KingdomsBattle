@@ -11,7 +11,7 @@ void close_physical (int);
 int unmap_physical (void *, unsigned int);
 
 /* Functions to set VGA pointers */
-
+void writeCard(int * card_addr, int cardID, bool visible);
 
 // Open /dev/mem, if not already done, to give access to physical addresses
 int open_physical (int fd)

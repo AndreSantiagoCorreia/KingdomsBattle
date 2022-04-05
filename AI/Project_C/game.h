@@ -1,7 +1,7 @@
 // personal header files
 #include "Data_type.h"
 #include "Card_Function.h"
-#include "vga.h"
+//#include "vga.h"
 //#include "Keyboard.h"
 
 /* PARAMETERS */
@@ -25,7 +25,8 @@ struct player* playerInit(int playerID);
 struct card* cardInit(int playerID);
 void ultimateInit(struct player* players);
 void cardFunction(struct player* player, int card_ID, int buff_ID);
-int chooseCard(struct player* currPlayer, int* MY_CARD_1_ptr, int* MY_CARD_2_ptr, int* MY_CARD_3_ptr, int* MY_CARD_USED_ptr);
+int chooseCard(struct player* currPlayer);
+//int chooseCard(struct player* currPlayer, int* MY_CARD_1_ptr, int* MY_CARD_2_ptr, int* MY_CARD_3_ptr, int* MY_CARD_USED_ptr);
 // int getCardFromKbd();
 
 /* FUNCTION IMPLEMENTATION */
@@ -35,15 +36,20 @@ struct player* playerInit(int playerID) {
     struct player* player = malloc(sizeof(struct player));
 
     player->cards = cardInit(playerID);
+
     player->player_ID = playerID;
+    
     player->health = 20;
+
     player->shield[0] = 0;
     player->shield[1] = 0;
     player->shield[2] = 0;
     player->indexAdd = 0;
     player->indexRemove = 1;
-    player->time_limit = 0;
+
     player->alive = true;
+
+    player->ultUseThisRound = false;
 
     return player;
 }
@@ -76,7 +82,7 @@ void ultimateInit(struct player* player){
     player->ultimate = rand() % ult_num;
 
     if (player->ultimate == 2){
-        player->health = 30;
+        player->health = 25;
     }
 
     printf("Player%d received ultimate %d!\n", player->player_ID, player->ultimate);

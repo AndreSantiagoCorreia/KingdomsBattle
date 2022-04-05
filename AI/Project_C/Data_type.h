@@ -31,7 +31,7 @@ struct player{
     struct card* cards; // the card player holds *need to be removed after being used*
     int player_ID;
     int health; // initially 20
-    clock_t time_limit; // need to work on it later
+    
     int shield[3];
     int indexAdd;
     int indexRemove;
@@ -39,12 +39,9 @@ struct player{
     // alive or not
     bool alive;
 
-    // used during battle
-    struct card cardHolds; // single card been chose
-    int objectID; // the player being chose
-
     // Buff relevant
     int ultimate;
+    bool ultUseThisRound;
 };
 
 #endif

@@ -13,11 +13,13 @@
 
 int main() {
     /* INITIALIZATION */
+    srand(time(NULL));
     // 0. initialize varibles
     bool isFirst; // tell who is chosing card first
     int myID;
     int oppoID;
     int round_buff;
+    struct player* getEffect;
 
     // 1. FROM SERVER: get order
     isFirst = true; // set for debugging; will get it from server
@@ -33,42 +35,101 @@ int main() {
     // 3. initialize ultimate
     ultimateInit(player_array[myID]);
     // FROM SERVER: GET ULTIMATE NUMBER FOR OPPONENT
+    ultimateInit(player_array[oppoID]); // just for debugging will get it from server
     // SEND TO VGA: ult info 
 
     /* GAME START */
     for (int round = 0; round < max_round; round++) {
-        printf("\n\n round %d \n\n", round);
+        printf("\n\nround %d\n\n", round);
         // FROM SERVER: get round_buff
         // SEND TO VGA: buff number
-        round_buff = 0; // set for debugging; will get it from server
+        round_buff = rand() % 3; // set for debugging; will get it from server
+        printf("round buff: %d\n", round_buff);
         struct player* currPlayer;
 
         if (isFirst) {
+            // if round_buff == 0 && ultimate >= 3, ultimate 3 and 4 are active
+            if (round_buff != 0 && player_array[myID]->ultimate >=3) {
+                printf("Will you use ultimate this round? (1:yes, 0:no) ");
+                scanf("%d", &player_array[myID]->ultUseThisRound); printf("\n");
+                if (player_array[myID]->ultUseThisRound) {
+                    // ultimate 4: disablt shield of opponent
+                    if (player_array[myID]->ultimate == 4) {
+                        player_array[oppoID]->shield[0] = 0;
+                        player_array[oppoID]->shield[1] = 0;
+                        player_array[oppoID]->shield[2] = 0;
+
+                        player_array[myID]->ultimate = 0; // remove ultimate
+                        player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                    }
+                }
+            }
+
             int myCard = chooseCard(player_array[myID]);
 
             // TO SERVER: SEND Card chosen
-            cardFunction(player_array[oppoID], myCard, round_buff);
-            printf("\n your remaining health: %d \n", player_array[myID]->health);
+            getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
+            cardFunction(getEffect, myCard, round_buff);
 
             // FROM SERVER: get cardID that opponent chose
-            int opponentCard = (rand() + (int) time(NULL)) % card_num;
+            int opponentCard = rand() % card_num;
+            printf("opponent's card: %d\n", opponentCard);
             // SEND TO VGA: enemy_card_visible (using random value between 0 to 1), enemy_card_used
-            cardFunction(player_array[myID], opponentCard, round_buff);
-            printf("\n opponent remaining health: %d \n", player_array[oppoID]->health);
+            // if I'm using ultimate this round and ultimate is 3, opponent's card has same effect on opponent
+            if (player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
+                printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+                cardFunction(player_array[oppoID], opponentCard, round_buff);
+                cardFunction(player_array[myID], opponentCard, round_buff);
+
+                player_array[myID]->ultimate = 0; // remove ultimate
+                player_array[myID]->ultUseThisRound = false; // ultimate is already used
+            } else {
+                getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+                cardFunction(getEffect, opponentCard, round_buff);
+            }
+
         } else {
             // FROM SERVER: get cardID that opponent chose
-            int opponentCard = (rand() + (int) time(NULL)) % card_num; // set for debugging; will get it from server
-            // SEND TO VGA: enemy_card_visible (using random value between 0 to 1), enemy_card_used
-            cardFunction(player_array[myID], opponentCard, round_buff);
-            printf("\n opponent remaining health: %d \n", player_array[oppoID]->health);
+            int opponentCard = rand() % card_num; // set for debugging; will get it from server
+            printf("opponent's card: %d\n", opponentCard);
+
+            // if I'm using ultimate this round and ultimate is 3, opponent's card has same effect on opponent
+            if (round_buff != 0 && player_array[myID]->ultUseThisRound && player_array[myID]->ultimate == 3) {
+                printf("ultimate 3 is enabled! Duplicate opponent's attack\n");
+
+                cardFunction(player_array[oppoID], opponentCard, round_buff);
+                cardFunction(player_array[myID], opponentCard, round_buff);
+
+                player_array[myID]->ultimate = 0; // remove ultimate
+                player_array[myID]->ultUseThisRound = false; // ultimate is already used
+            } else {
+                getEffect = opponentCard <= 6 ? player_array[myID] : player_array[oppoID];
+                cardFunction(getEffect, opponentCard, round_buff);
+            }
 
             // My turn to choose card
             int myCard = chooseCard(player_array[myID]);
 
-            // TO SERVER: SEND Card chosen
-            cardFunction(player_array[oppoID], myCard, round_buff);
-            printf("\n your remaining health: %d \n", player_array[myID]->health);
+            // if round_buff == 0 || ultimate == 0, ultimate is disabled
+            if (round_buff != 0 && player_array[myID]->ultimate >= 3) {
+                printf("Will you use ultimate this round? (1:yes, 0:no) ");
+                scanf("%d", &player_array[myID]->ultUseThisRound); printf("\n");
+                if (player_array[myID]->ultUseThisRound) {
+                    // ultimate 4: disablt shield of opponent
+                    if (player_array[myID]->ultimate == 4) {
+                        player_array[oppoID]->shield[0] = 0;
+                        player_array[oppoID]->shield[1] = 0;
+                        player_array[oppoID]->shield[2] = 0;
 
+                        player_array[myID]->ultimate = 0; // remove ultimate
+                        player_array[myID]->ultUseThisRound = false; // ultimate is already used
+                    }
+                }
+            }
+
+            // TO SERVER: SEND Card chosen
+            getEffect = myCard <= 6 ? player_array[oppoID] : player_array[myID];
+            cardFunction(getEffect, myCard, round_buff);
         }
 
         // change shield

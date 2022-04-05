@@ -3,8 +3,6 @@
 
 void card_simple_attack(int damage, struct player* _player){
 
-    printf("The object of attack is Player%d\n", _player -> player_ID);
-
     printf("Player%d receives %d damage\n", _player -> player_ID, damage);
 
     // ultimate 1 is realized here
