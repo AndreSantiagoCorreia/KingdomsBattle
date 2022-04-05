@@ -41,7 +41,7 @@ struct player{
 
     // Buff relevant
     int ultimate;
-    bool ultUseThisRound;
+    int ultUseThisRound;
 };
 
 #endif

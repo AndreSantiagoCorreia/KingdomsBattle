@@ -11,7 +11,7 @@
 //#include "vga.h"
 
 #define MAX 1024
-#define PORT 13535
+#define PORT 53535
 #define SA struct sockaddr
 
 //Writes a message typed into the terminal to the server
@@ -98,9 +98,9 @@ void func(int sockfd)
             //buff contains opponent's card played and myRoundBuff contains round buff id******
             int round_buff = *myRoundBuff-'0';
 
-            int opponentCard = atoi(buff[0]);
-            player_array[oppoID]->ultimate = atoi(buff[2]);
-            player_array[oppoID]->ultUseThisRound = atoi(buff[3]);
+            int opponentCard = atoi(&buff[0]);
+            player_array[oppoID]->ultimate = atoi(&buff[2]);
+            player_array[oppoID]->ultUseThisRound = atoi(&buff[3]);
         
             /* CHANGE VISIBILITY OF OPPONENT CARDS ON TABLE
             srand(time(NULL));
