@@ -6,7 +6,7 @@ import threading
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 53535# 65432  # Port to listen on (non-privileged ports are > 1023)
-MAXROUNDS = 10 #number of rounds that should be played
+MAXROUNDS = 9 #number of rounds that should be played
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -56,7 +56,6 @@ def chat(message, client):
                 if client == tuples[1]:
                     try:
                         if message.decode('ascii').find("gameEnded") != -1:
-                            print("??????????")
                             endGame(tuples[0], tuples[1])
                     except:
                         print("continue...")
@@ -66,13 +65,12 @@ def chat(message, client):
                     tuples[2] += 1
                     #tuples[3] = str(randint(0,2))
                     #print(tuples[2])
-                    if tuples[2] < MAXROUNDS:
+                    if tuples[2] == MAXROUNDS:
                         endGame(tuples[0], tuples[1])
                     break
                 else:
                     try:
                         if message.decode('ascii').find("gameEnded") != -1:
-                            print("??????????")
                             endGame(tuples[0], tuples[1])
                     except:
                         print("continue...")
