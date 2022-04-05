@@ -38,7 +38,7 @@ struct player* playerInit(int playerID) {
     player->cards = cardInit(playerID);
 
     player->player_ID = playerID;
-    
+
     player->health = 20;
 
     player->shield[0] = 0;
@@ -83,6 +83,7 @@ void ultimateInit(struct player* player){
 
     if (player->ultimate == 2){
         player->health = 25;
+        player->ultUseThisRound = true;
     }
 
     printf("Player%d received ultimate %d!\n", player->player_ID, player->ultimate);
