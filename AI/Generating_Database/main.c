@@ -95,7 +95,7 @@ int main(){
 
                             printf("Ultimate 3 is activated! \n");
 
-                            player_array[i].ultimate = 300 * (opid + 5);
+                            player_array[i].ultimate = 300;
 
                             not_active:
                             continue;
@@ -186,17 +186,15 @@ int main(){
                     // choose an opponent
                     //user_object_choice(current_player, playerNum, player_array);//
 
-                    index_user = input_test(-1, playerNum, -1, current_player->player_ID);;
+                    if ((current_player->cardHolds).card_ID > 6){
+                        index_user = input_test(-1, playerNum, (current_player -> player_ID + 1) % 2, current_player->player_ID);
+                    }
+                    else{
+                        index_user = input_test(-1, playerNum, current_player -> player_ID, current_player->player_ID);;
+                    }
 
                     ////////////////////////////////////////////////////
                     current_player->objectID = index_user;
-
-                    // Object directed
-                    if (player_array[current_player->objectID].ultimate > 100) {
-                        int opid = player_array[current_player->objectID].ultimate / 300 - 5;
-                        printf("Object directed from %d to %d! \n", current_player->objectID, opid);
-                        current_player->objectID = opid;
-                    }
 
                     printf("Player%d chooses the card ", current_player->player_ID);
                     printf("%d, used on Player%d", (current_player->cardHolds).card_ID, current_player->objectID);
@@ -204,6 +202,15 @@ int main(){
 
                     cardFunction(current_player->cardHolds, &player_array[current_player->objectID],
                                  round_buff_id); //...
+
+                    // Object directed
+                    if (player_array[current_player->objectID].ultimate > 100) {
+                        player_array[current_player->objectID].ultimate = 0;
+                        int opid = (current_player->objectID + 1) % 2;
+                        printf("Object directed from %d to %d! \n", current_player->objectID, opid);
+                        cardFunction(current_player->cardHolds, &player_array[opid],
+                                     round_buff_id);
+                    }
 
                     // disable using card id
                     current_player->cards[(current_player->cardHolds).card_ID].valid = false;
@@ -311,51 +318,55 @@ struct card* cardInitialization(int playerID){
 // now we suppose card 1 - 6 is damage card, 7 - 13 is difference card
 void cardFunction(struct card _card, struct player* player, int round_buff_id){
     int attack_card_multiplier = 1;
+    int shield_card_multiplier = 1;
 
     if (round_buff_id == 2){
         attack_card_multiplier = 2;
     }
+    else if (round_buff_id == 1){
+        shield_card_multiplier = 2;
+    }
 
     if (_card.card_ID == 1){
-        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+        card_simple_attack((_card.card_ID + 1) * attack_card_multiplier, player);
     }
     else if (_card.card_ID == 2){
-        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+        card_simple_attack((_card.card_ID + 1) * attack_card_multiplier, player);
     }
     else if (_card.card_ID == 3){
-        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+        card_simple_attack((_card.card_ID + 1) * attack_card_multiplier, player);
     }
     else if (_card.card_ID == 4){
-        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+        card_simple_attack((_card.card_ID + 1) * attack_card_multiplier, player);
     }
     else if (_card.card_ID == 5){
-        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+        card_simple_attack((_card.card_ID + 1) * attack_card_multiplier, player);
     }
     else if (_card.card_ID == 6){
-        card_simple_attack(_card.card_ID * attack_card_multiplier, player);
+        card_simple_attack((_card.card_ID + 1) * attack_card_multiplier, player);
     }
 
         // defensive card here
     else if (_card.card_ID == 7){
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID - 6) * shield_card_multiplier, player);
     }
     else if (_card.card_ID == 8){
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID - 6) * shield_card_multiplier, player);
     }
     else if (_card.card_ID == 9){
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID - 6) * shield_card_multiplier, player);
     }
     else if (_card.card_ID == 10){
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID - 6) * shield_card_multiplier, player);
     }
     else if (_card.card_ID == 11){
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID - 6) * shield_card_multiplier, player);
     }
     else if (_card.card_ID == 12){
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID - 6) * shield_card_multiplier, player);
     }
     else if (_card.card_ID == 0){ // need to change
-        card_simple_defence(_card.card_ID, player);
+        card_simple_defence((_card.card_ID + 1) * attack_card_multiplier, player);
     }
 }
 
@@ -377,7 +388,7 @@ void ultimateInitialization(struct player* players){
         input_test_record('u',  players[i].ultimate, players[i].player_ID);
 
         if (players[i].ultimate == 2){
-            players[i].health = 30;
+            players[i].health = 25;
         }
 
         printf("Player%d received ultimate %d!\n", players[i].player_ID, players[i].ultimate);

@@ -1,6 +1,6 @@
 // suppose we always want AI to be player 1
-
 var fs = require("fs");
+
 var text = fs.readFileSync("./database.txt").toString('utf-8');//.slice(0, -9 * 95703596 / 10);
 //const textByLine = text.split("\n");
 
@@ -56,6 +56,8 @@ for (var i = 0; i < all_rounds.length; i++){
     var ai_array = []; // all ai array, might be null when the player0 killed itself
     var player_array = [];
 
+    // one game
+    // each round...
     for (var j = 0; j < all_rounds[i].length; j++) {
 
         var match_rbuff = regex_rbuff.exec(all_rounds[i][j]); //only one I think
@@ -137,11 +139,12 @@ for (var i = 0; i < all_rounds.length; i++){
 
     // still within the loop, in the loop -> in the same game
     var player_card = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    var ai_card = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    //var ai_card = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; i dont think i need to record the remaining cards of ai
 
     var index;
 
-    for (var i = 0; i < ai_array.length; i++){
+    for (var k = 0; k < ai_array.length; k++){
+        /*
         if (ai_array[i] != null){
             var ai_card_chosen = ai_array[i][4];
             //console.log(ai_array[i][4]);
@@ -153,16 +156,17 @@ for (var i = 0; i < all_rounds.length; i++){
             ai_array[i][4] = Array.from(ai_card);
             //console.log(ai_array[i][4]);
         }
+         */
 
-        if (player_array[i] != null){
-            var player_card_chosen = player_array[i][4];
+        if (player_array[k] != null){
+            var player_card_chosen = player_array[k][4];
             //console.log(player_array[i][4]);
             index = player_card.indexOf(parseInt(player_card_chosen));
             if (index > -1) {
                 player_card.splice(index, 1);
             }
 
-            player_array[i][4] = Array.from(player_card);
+            player_array[k][4] = Array.from(player_card);
             //console.log(player_array[i][4]);
         }
 
@@ -170,7 +174,7 @@ for (var i = 0; i < all_rounds.length; i++){
         //console.log("\n");
     }
 
-    console.log(ai_array);
+    //console.log(ai_array);
 
     /*
     for (var i = 0; i < ai_array.length; i++){
@@ -184,6 +188,38 @@ for (var i = 0; i < all_rounds.length; i++){
     }
      */
 
+    // in the same game
+    // now write to the file
+    // rbuff -> player_array_card_remained -> ai status -> card choose -> object
 
+    for (var k = 0; k < rbuffs.length; k++){
+        if (ai_array[k] != null){
+            //console.log(rbuffs[i].toString().concat(",[", player_array[i][4], "],", ai_array[i]));
+            var appendString = rbuffs[k].toString().concat(",[", player_array[k][4], "],", ai_array[k].slice(0, 4), "\n");
+            //console.log(appendString);
+            fs.appendFileSync("./cleaned_data.txt", appendString, err => {
+                if (err){
+                    console.log(err);
+                    return;
+                }
+            });
+
+            var appendStringResult = ai_array[k].slice(4, 5).toString().concat("\n"); //4, 6 -> 4, 5
+            fs.appendFileSync("./cleaned_data_result.txt", appendStringResult, err => {
+                if (err){
+                    console.log(err);
+                    return;
+                }
+            });
+        }
+    }
+    /*
+    fs.writeFileSync("./cleaned_data3.txt", "hello!", err => {
+        if (err){
+            console.log(err);
+            return;
+        }
+    });
+
+     */
 }
-
