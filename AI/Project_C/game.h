@@ -1,8 +1,9 @@
 // personal header files
 #include "Data_type.h"
 #include "Card_Function.h"
+#include <time.h>
 #include "vga.h"
-//#include "Keyboard.h"
+#include "Keyboard.h"
 
 /* PARAMETERS */
 // keycodes used for game
@@ -25,9 +26,10 @@ struct player* playerInit(int playerID);
 struct card* cardInit(int playerID);
 void ultimateInit(struct player* players);
 void cardFunction(struct player* player, int card_ID, int buff_ID);
-//int chooseCard(struct player* currPlayer);
-int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr, volatile int* MY_CARD_2_ptr, volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr);
-// int getCardFromKbd();
+int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr, volatile int* MY_CARD_2_ptr,
+                 volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr, volatile int* TIME_ptr,
+                 volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr);
+int getCardFromKbd(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr);
 
 /* FUNCTION IMPLEMENTATION */
 /* Game initialization functions */
@@ -88,8 +90,9 @@ void cardFunction(struct player* player, int card_ID, int buff_ID){
 }
 
 /* Functions for rounds */
-int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile int* MY_CARD_2_ptr, volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr) {
-//int chooseCard(struct player* currPlayer) {
+int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile int* MY_CARD_2_ptr,
+                     volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr, volatile int* TIME_ptr,
+                     volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr) {
     // Draw 3 cards from deck
     int cardOnTable[3];
     int numDrew = 0;
@@ -124,12 +127,16 @@ int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile
         printf("\n");
     }
 
-    //int cardChosen = getCardFromKbd; //WHEN CONNECT TO KEYBOARD
     int cardChosen;
-    printf("choose your card (0-2): "); // for debugging before connects to server
-    scanf("%d", &cardChosen);
+    printf("choose your card: \n"); // for debugging before connects to server
+    *TIME_ptr = 29;
+    *TIME_ptr = *TIME_ptr | (1 << 7);
+    *TIME_ptr = 0;
+    cardChosen = getCardFromKbd(KEYCODE_ptr, KEYCODE_RST_ptr, CARD_SELECT_ptr); //WHEN CONNECT TO KEYBOARD
 
     writeCard(MY_CARD_USED_ptr, cardOnTable[cardChosen], true);
+    *CARD_SELECT_ptr = 3;
+
     if (cardChosen == 0) writeCard(MY_CARD_1_ptr, cardOnTable[0], false);
     else if (cardChosen == 1) writeCard(MY_CARD_2_ptr, cardOnTable[1], false);
     else writeCard(MY_CARD_3_ptr, cardOnTable[2], false);
@@ -144,34 +151,41 @@ int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile
     return myCard;
 }
 
-// int getCardFromKbd() {
-//     int cardIdx = 0;
-//     bool cardChosen;
+int getCardFromKbd(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr) {
+    int cardIdx = 0;
+    bool cardChosen = false;
 
-//     clock_t start = clock();
-//     unsigned int kbd = 0x0;
-
-//     while (clock() - start > TIME_LIMIT_CHOOSE_CARD) {
-//         kbd = getKeycode();
-
-//         if (kbd == KEY_ENTER1 || kbd == KEY_ENTER2 || kbd == KEY_SPACE) {
-//             break;
-//         } else if (kbd == KEY_RIGHT) {
-//             cardIdx = (cardIdx + 1) % 3;
-//             cardChosen = true;
-//         } else if (kbd == KEY_LEFT) {
-//             cardIdx = (cardIdx - 1) < 0 ? 4 : cardIdx - 1;
-//             cardChosen = true;
-//         }
-//     }
-
-//     /* Used when we decided to use random card when player did not choose card */
-//     if (cardChosen) {
-//         return cardIdx;
-//     } else {
-//         srand(time(NULL));
-//         return rand()%3;
-//     }
-// }
+    time_t start = time(NULL);
+    printf("start init: %ld\n", start);
+    unsigned int kbd = 0x0;
+    
+    while ((time(NULL)-start) <= 30) {
+        kbd = getKeycode(KEYCODE_ptr, KEYCODE_RST_ptr);
+        printf("Clock: %ld\n", clock());
+        printf("start: %ld\n", start);
+        printf("kbd: %d\n", kbd);
+        if (kbd == KEY_ENTER1 || kbd == KEY_ENTER2 || kbd == KEY_SPACE) {
+            printf("1\n");
+            cardChosen = true;
+            break;
+        } else if (kbd == KEY_RIGHT) {
+            printf("2\n");
+            cardIdx = (cardIdx + 1) % 3;
+        } else if (kbd == KEY_LEFT) {
+            printf("3\n");
+            cardIdx = (cardIdx - 1) < 0 ? 2 : cardIdx - 1;
+        }
+        printf("cardIdx: %d\n", cardIdx);
+        *CARD_SELECT_ptr = cardIdx;
+    }
+    printf("cardChosen: %d\n", cardChosen);
+    /* Used when we decided to use random card when player did not choose card */
+    if (cardChosen) {
+        return cardIdx;
+    } else {
+        srand(time(NULL));
+        return rand()%3;
+    }
+}
 
 #endif

@@ -1,5 +1,4 @@
 #include "Card_Function.h"
-#include <time.h>
 
 void card_simple_attack(int damage, struct player* _player, int buff_ID){
 
