@@ -16,31 +16,33 @@ void card_simple_attack(int damage, struct player* _player, int buff_ID){
 
     int remain_damage = 0;
 
-    _player -> shield[_player -> indexRemove] = _player -> shield[_player -> indexRemove] - damage;
-    if (_player -> shield[_player -> indexRemove] < 0){
-        remain_damage = 0 - _player -> shield[_player -> indexRemove];
-        _player -> shield[_player -> indexRemove] = 0;
-     
-        if (remain_damage > 0){
-            _player -> shield[(_player -> indexRemove + 1) % 3] = _player -> shield[(_player -> indexRemove + 1) % 3] - remain_damage;
+    int i = _player->indexRemove;
+    if (_player->shield[i] <= damage) {
+        remain_damage = damage - _player->shield[i];
+        _player->shield[i] = 0;
 
-            if(_player -> shield[(_player -> indexRemove + 1) % 3] <= 0){
-                remain_damage = 0 - _player -> shield[(_player -> indexRemove + 1) % 3];
-                _player -> shield[(_player -> indexRemove + 1) % 3] = 0;
+        if (_player->shield[(i+1)%3] <= remain_damage) {
+            remain_damage = remain_damage - _player->shield[(i+1)%3];
+            _player->shield[(i+1)%3] = 0;
 
-                if (remain_damage > 0){
-                    _player -> shield[(_player -> indexRemove + 2) % 3] = _player -> shield[(_player -> indexRemove + 2) % 3] - remain_damage;
-                    if(_player -> shield[(_player -> indexRemove + 2) % 3] <= 0) {
-                        remain_damage = 0 - _player->shield[(_player->indexRemove + 2) % 3];
-                        _player->shield[(_player->indexRemove + 2) % 3] = 0;
-                    }
-                }
+            if (_player->shield[(i+2)%3] <= remain_damage) {
+                remain_damage = remain_damage - _player->shield[(i+2)%3];
+                _player->shield[(i+2)%3] = 0;
+            } else {
+                _player->shield[(i+2)%3] -= remain_damage;
+                remain_damage = 0;
             }
+        } else {
+            _player->shield[(i+1)%3] -= remain_damage;
+            remain_damage = 0;
         }
+    } else {
+        _player->shield[i] -= remain_damage;
+        remain_damage = 0;
+    }
 
-        if (remain_damage > 0) {
-            _player -> health = _player -> health - remain_damage;
-        }
+    if (remain_damage > 0) {
+        _player -> health = _player -> health - remain_damage;
     }
 
     printf("\n");

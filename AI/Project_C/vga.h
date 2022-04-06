@@ -1,4 +1,8 @@
+#ifndef VGA_H
+#define VGA_H
+
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -11,7 +15,7 @@ void close_physical (int);
 int unmap_physical (void *, unsigned int);
 
 /* Functions to set VGA pointers */
-void writeCard(int * card_addr, int cardID, bool visible);
+void writeCard(volatile int * card_addr, int cardID, bool visible);
 
 // Open /dev/mem, if not already done, to give access to physical addresses
 int open_physical (int fd)
@@ -63,10 +67,11 @@ int unmap_physical(void * virtual_base, unsigned int span)
    return 0;
 }
 
-void writeCard(int * card_addr, int cardID, bool visible) {
+void writeCard(volatile int * card_addr, int cardID, bool visible) {
    unsigned int card = visible ? 0x80 : 0;
    card += cardID <= 6 ? 0 : 1;
    card += cardID <= 6 ? (cardID+1) << 1 : (cardID-6) << 1;
    *card_addr = card; 
 }
 
+#endif
