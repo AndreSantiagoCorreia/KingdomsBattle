@@ -400,7 +400,7 @@ def output_function(roundbuff, left_cards, stat, card_on_deck): #stat in string
 
         if roundbuff == 2:
             player_score = player_score * 0.6
-        elif roundbuff == 3:
+        elif roundbuff == 1:
             player_score = player_score * 1.25
 
         attack_card = []
