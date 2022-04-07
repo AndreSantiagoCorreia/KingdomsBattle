@@ -1,12 +1,14 @@
 # Multiplayer Card Game: Kingdoms Battle
-## L2C_Team39 Members
+### L2C_Team39 Members
 - Andre Santiago Correia
 - Cassiel Jung
 - Nick Zhang
 - Mike He
 
 ## Project Topic
-Developing real-time multiplayer card game using *cloud, user interface, hardware, AI* that supports multiplayer mode between two people and single-player mode between a person and AI.
+Developing real-time multiplayer card game using *cloud, user interface(game and AI), hardware* that supports multiplayer mode between two people and single-player mode between a person and AI.
+
+![image](https://user-images.githubusercontent.com/69894554/162331210-1848859a-3568-4246-a924-9c5b8c95b27b.png)
 
 ## Project Goal
 Since our final product is a video game, the game should meet following goals:
@@ -14,6 +16,14 @@ Since our final product is a video game, the game should meet following goals:
 - accessibility; users should be able to access the game everywhere through internet
 - innovative and strategic game logic: game should be interesting to play and not similar to pre-existing games
 - fast-paced: if game is taking for a long time user would lose their concentration
+
+## Features Implemented
+Multiplayer Mode: Multiple games can be run synchronously. For example, if we have 4 people running the game, there will be 2 rooms with 2 people each.
+![image](https://user-images.githubusercontent.com/69894554/162332666-ee28c63f-9b6d-4b62-b050-c10e0941628a.png)
+
+Singleplayer Mode: Multiple games can be run synchronously. When 4 people joined to play singleplayer mode with AI at the same time, server will create 4 separate room for them so that they can play just like the image below.
+![image](https://user-images.githubusercontent.com/69894554/162333109-90437082-9111-4b77-947d-d7125249f5d8.png)
+
 
 ## Contribution
 ### Hardware_Nick
