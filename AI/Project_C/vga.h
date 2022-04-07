@@ -1,12 +1,12 @@
-#ifndef VGA_H
-#define VGA_H
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include "../address_map_arm.h"
+
+#ifndef VGA_H
+#define VGA_H
 
 /* Prototypes for functions used to access physical memory addresses */
 int open_physical (int);

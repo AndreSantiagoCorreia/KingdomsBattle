@@ -14,9 +14,10 @@
 #define KEY_DOWN 0xE072
 #define KEY_LEFT 0xE06B
 #define KEY_RIGHT 0xE074
+#define KEY_U 0x3C
 
 // time limit
-#define TIME_LIMIT_CHOOSE_CARD 30000
+#define TIME_LIMIT_CHOOSE_CARD 30
 
 #ifndef _GAMEH_
 #define _GAMEH_
@@ -24,12 +25,14 @@
 /* FUNCTION DEFINITION */
 struct player* playerInit(int playerID);
 struct card* cardInit(int playerID);
-void ultimateInit(struct player* players);
-void cardFunction(struct player* player, int card_ID, int buff_ID);
-int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr, volatile int* MY_CARD_2_ptr,
+void cardFunction(struct player* player, int card_ID, int buff_ID, volatile int* ULT_INFO_ptr);
+void removeOldShield(struct player* me, struct player* oppo);
+int chooseCard(struct player* currPlayer, int round_buff, volatile int* MY_CARD_1_ptr, volatile int* MY_CARD_2_ptr,
                  volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr, volatile int* TIME_ptr,
-                 volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr);
-int getCardFromKbd(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr);
+                 volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr,
+                 volatile int* ULT_INFO_ptr);
+int getCardFromKbd(struct player* player, int round_buff, volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr,
+                     volatile int* CARD_SELECT_ptr, volatile int* ULT_INFO_ptr);
 
 /* FUNCTION IMPLEMENTATION */
 /* Game initialization functions */
@@ -63,36 +66,33 @@ struct card* cardInit(int playerID){
     return card_array;
 }
 
-void ultimateInit(struct player* player){
-    srand(time(NULL));
-    player->ultimate = rand() % ult_num;
-
-    if (player->ultimate == 2){
-        player->health = 25;
-        player->ultUseThisRound = true;
-    }
-
-    printf("Player%d received ultimate %d!\n", player->player_ID, player->ultimate);
-
+void removeOldShield(struct player* me, struct player* oppo) {
+    me -> shield[me -> indexRemove] = 0; 
+    me -> indexAdd = (me -> indexAdd + 1) % 3;
+    me -> indexRemove = (me -> indexRemove + 1) % 3;
+    oppo -> shield[oppo -> indexRemove] = 0;
+    oppo -> indexAdd = (oppo -> indexAdd + 1) % 3;
+    oppo -> indexRemove = (oppo -> indexRemove + 1) % 3;
 }
 
-void cardFunction(struct player* player, int card_ID, int buff_ID){
+void cardFunction(struct player* player, int card_ID, int buff_ID, volatile int* ULT_INFO_ptr){
     // if player has round buff 2, attack point doubled
     int attack_card_multiplier = buff_ID == 2 ? 2 : 1;
     int shield_multiplier = buff_ID == 1 ? 2 : 1;
 
     // card from 0-6 is attack, 7-12 is defence
     if (card_ID <= 6){
-        card_simple_attack(((card_ID+1) * attack_card_multiplier), player, buff_ID);
+        card_simple_attack(((card_ID+1) * attack_card_multiplier), player, buff_ID, ULT_INFO_ptr);
     } else {
         card_simple_defence(((card_ID-6) * shield_multiplier), player);
     }
 }
 
 /* Functions for rounds */
-int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile int* MY_CARD_2_ptr,
+int chooseCard(struct player* currPlayer, int round_buff, volatile int* MY_CARD_1_ptr,  volatile int* MY_CARD_2_ptr,
                      volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr, volatile int* TIME_ptr,
-                     volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr) {
+                     volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr,
+                     volatile int* ULT_INFO_ptr) {
     // Draw 3 cards from deck
     int cardOnTable[3];
     int numDrew = 0;
@@ -128,11 +128,10 @@ int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile
     }
 
     int cardChosen;
-    printf("choose your card: \n"); // for debugging before connects to server
     *TIME_ptr = 29;
     *TIME_ptr = *TIME_ptr | (1 << 7);
     *TIME_ptr = 0;
-    cardChosen = getCardFromKbd(KEYCODE_ptr, KEYCODE_RST_ptr, CARD_SELECT_ptr); //WHEN CONNECT TO KEYBOARD
+    cardChosen = getCardFromKbd(currPlayer, round_buff, KEYCODE_ptr, KEYCODE_RST_ptr, CARD_SELECT_ptr, ULT_INFO_ptr); //WHEN CONNECT TO KEYBOARD
 
     writeCard(MY_CARD_USED_ptr, cardOnTable[cardChosen], true);
     *CARD_SELECT_ptr = 3;
@@ -151,33 +150,33 @@ int chooseCard(struct player* currPlayer, volatile int* MY_CARD_1_ptr,  volatile
     return myCard;
 }
 
-int getCardFromKbd(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr) {
+int getCardFromKbd(struct player* player, int round_buff, volatile int* KEYCODE_ptr,
+                     volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr, volatile int* ULT_INFO_ptr) {
     int cardIdx = 0;
     bool cardChosen = false;
+    bool ultInit = (round_buff != 0 && player->ultimate >= 3) ? true : false;
 
     time_t start = time(NULL);
-    printf("start init: %ld\n", start);
     unsigned int kbd = 0x0;
     
     while ((time(NULL)-start) <= 30) {
         kbd = getKeycode(KEYCODE_ptr, KEYCODE_RST_ptr);
-        printf("Clock: %ld\n", clock());
-        printf("start: %ld\n", start);
-        printf("kbd: %d\n", kbd);
         if (kbd == KEY_ENTER1 || kbd == KEY_ENTER2 || kbd == KEY_SPACE) {
-            printf("1\n");
             cardChosen = true;
             break;
         } else if (kbd == KEY_RIGHT) {
-            printf("2\n");
             cardIdx = (cardIdx + 1) % 3;
         } else if (kbd == KEY_LEFT) {
-            printf("3\n");
             cardIdx = (cardIdx - 1) < 0 ? 2 : cardIdx - 1;
+        } else if (kbd == KEY_U && ultInit) {
+            *ULT_INFO_ptr = *ULT_INFO_ptr ^ 0x40;
         }
-        printf("cardIdx: %d\n", cardIdx);
         *CARD_SELECT_ptr = cardIdx;
     }
+
+    // if player decided to use the ultimate, set ultUseThisRound to true
+    if (*ULT_INFO_ptr & 0x40) player->ultUseThisRound = true;
+
     printf("cardChosen: %d\n", cardChosen);
     /* Used when we decided to use random card when player did not choose card */
     if (cardChosen) {
