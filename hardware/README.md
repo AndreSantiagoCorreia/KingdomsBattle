@@ -1,1 +1,0 @@
-Hardware component - Driver for PS2 keyboard input and accelerator for graphics
