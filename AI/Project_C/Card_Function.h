@@ -42,7 +42,7 @@ void card_simple_attack(int damage, struct player* _player, int buff_ID, volatil
             remain_damage = 0;
         }
     } else {
-        _player->shield[i] -= remain_damage;
+        _player->shield[i] -= damage;
         remain_damage = 0;
     }
 

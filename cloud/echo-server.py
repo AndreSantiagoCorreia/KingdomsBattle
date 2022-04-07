@@ -1,9 +1,11 @@
 # echo-server.py
 
 from random import randint
+import random
 import socket
 import threading
 import string
+import time
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 43535# 65432  # Port to listen on (non-privileged ports are > 1023)
@@ -87,14 +89,15 @@ def chat(message, client):
                             endGame(tuples[0], tuples[1])
                     except:
                         print("continue...")
+                    print(tuples[3])
                     tuples[0].send(message)
                     tuples[0].send(f'{tuples[3]}'.encode('ascii'))
                     #tuples[0].send(f'g'.encode('ascii'))
                     tuples[2] += 1
                     #tuples[3] = str(randint(0,2))
                     #print(tuples[2])
-                    if tuples[2] == MAXROUNDS:
-                        endGame(tuples[0], tuples[1])
+                    #if tuples[2] == MAXROUNDS:
+                    #    endGame(tuples[0], tuples[1])
                     break
                 else:
                     try:
@@ -102,6 +105,7 @@ def chat(message, client):
                             endGame(tuples[0], tuples[1])
                     except:
                         print("continue...")
+                    print(tuples[3])
                     tuples[1].send(message)
                     tuples[1].send(f'{tuples[3]}'.encode('ascii'))
                     tuples[3] = str(randint(0,2))
@@ -205,7 +209,7 @@ def receive():
                 index1 = clients.index(waitingMM[0])
                 waitingMM.remove(clients[index1])
                 index2 = clients.index(client)
-                waitingMM.remove(clients[index2])
+                #waitingMM.remove(clients[index2])
                 createRooms(index1, index2)
 
             print(f'Nickname is: {nickname}')
@@ -287,6 +291,8 @@ def chatAI(message, client): #player_array[myID]->ultimate, player_array[myID]->
                     client_ultimate = int(stringMessage[0])
                     client_ultuse = int(stringMessage[1]) #can i code like this
                     client_card = int(stringMessage[2])
+                    sleepTime = random.uniform(1.5,3.0)
+                    time.sleep(sleepTime)
                     #ENDOF This is not correct
 
                     if client_card in cards_Remain_list[i]: # the cards get tidied
@@ -328,7 +334,7 @@ def chatAI(message, client): #player_array[myID]->ultimate, player_array[myID]->
                     ai_used = 0
                     # this can be more complicated, consider later
                     if tuples[3] != 0:
-                        if randint(0,10) >= 2:
+                        if randint(0,10) >= 4:
                             ai_used = 0
                         else:
                             ai_used = 1 #used the ult

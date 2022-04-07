@@ -15,6 +15,7 @@
 #define KEY_LEFT 0xE06B
 #define KEY_RIGHT 0xE074
 #define KEY_U 0x3C
+#define KEY_ESC 0x76
 
 // time limit
 #define TIME_LIMIT_CHOOSE_CARD 30
@@ -31,8 +32,10 @@ int chooseCard(struct player* currPlayer, int round_buff, volatile int* MY_CARD_
                  volatile int* MY_CARD_3_ptr, volatile int* MY_CARD_USED_ptr, volatile int* TIME_ptr,
                  volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* CARD_SELECT_ptr,
                  volatile int* ULT_INFO_ptr);
+char getPlayerMode(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* INITIAL_SCREEN_ptr);
 int getCardFromKbd(struct player* player, int round_buff, volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr,
                      volatile int* CARD_SELECT_ptr, volatile int* ULT_INFO_ptr);
+void getEscape(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* INITIAL_SCREEN_ptr);
 
 /* FUNCTION IMPLEMENTATION */
 /* Game initialization functions */
@@ -148,6 +151,36 @@ int chooseCard(struct player* currPlayer, int round_buff, volatile int* MY_CARD_
     }
 
     return myCard;
+}
+
+char getPlayerMode(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* INITIAL_SCREEN_ptr) {
+    unsigned int kbd = 0x0;
+
+    while(1) {
+        kbd = getKeycode(KEYCODE_ptr, KEYCODE_RST_ptr);
+        if (kbd == KEY_ENTER1 || kbd == KEY_ENTER2 || kbd == KEY_SPACE) {
+            break;
+        } else if (kbd == KEY_DOWN || kbd == KEY_UP) {
+            *INITIAL_SCREEN_ptr = *INITIAL_SCREEN_ptr == 0 ? 2 : 0; 
+        }
+    }
+
+    char mode = *INITIAL_SCREEN_ptr == 2 ? 'N' : 'Y';
+    return mode;
+}
+
+void getEscape(volatile int* KEYCODE_ptr, volatile int* KEYCODE_RST_ptr, volatile int* INITIAL_SCREEN_ptr) {
+    unsigned int kbd = 0x0;
+
+    while(1) {
+        kbd = getKeycode(KEYCODE_ptr, KEYCODE_RST_ptr);
+        if (kbd == KEY_ESC) {
+            break;
+        }
+    }
+
+    *INITIAL_SCREEN_ptr = 0;
+    return;
 }
 
 int getCardFromKbd(struct player* player, int round_buff, volatile int* KEYCODE_ptr,

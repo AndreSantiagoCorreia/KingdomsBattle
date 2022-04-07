@@ -130,7 +130,7 @@ void func(int sockfd)
             read(sockfd, myRoundBuff, sizeof(myRoundBuff));
             
             // GAME: if I'm the first player, keep the oldRoundBuff
-            int round_buff = isFirst ? oldRoundBuff : *myRoundBuff-'0';
+            int round_buff = (isFirst || *myRoundBuff-'0' < 0) ? oldRoundBuff : *myRoundBuff-'0';
             *BUFF_ptr = (unsigned int) round_buff;
             if (!isFirst) printf("myRoundBuff: %d\n", round_buff);
 
@@ -144,7 +144,6 @@ void func(int sockfd)
             if (player_array[oppoID]->ultUseThisRound) {
                 *ULT_INFO_ptr = *ULT_INFO_ptr | 0x80;
             }
-            
 
             // VGA: change visibility of opponent cards on table
             srand(time(NULL));
@@ -192,25 +191,24 @@ void func(int sockfd)
 
             // GAME & SERVER: if one player died, game ended
             if (!player_array[myID]->alive) {
+                *ENDING_INFO_ptr = 3;
+                *MY_HP_ptr = 0;
+                *MY_SHIELD_ptr = 0;
+
                 char gameEnded[MAX] = "gameEnded";
                 writeToServer(sockfd, gameEnded, sizeof(gameEnded));
-
-                *ENDING_INFO_ptr = 3;
 
                 return;
             } else if (!player_array[oppoID]->alive) {
-                char gameEnded[MAX] = "gameEnded";
-                writeToServer(sockfd, gameEnded, sizeof(gameEnded));
-
                 *ENDING_INFO_ptr = 1;
+                *ENEMY_HP_ptr = 0;
+                *ENEMY_SHIELD_ptr = 0;
 
                 return;
             }
 
             // VGA: turn off ultimate if it was used
-            if (*ULT_INFO_ptr & 0x40) {
-                *ULT_INFO_ptr = *ULT_INFO_ptr - 0x40;
-            }
+            if (*ULT_INFO_ptr & 0x40) *ULT_INFO_ptr = *ULT_INFO_ptr - 0x40;
 
             // GAME: If I am the first player, round ends here 
             if (isFirst) {
@@ -231,6 +229,28 @@ void func(int sockfd)
 
                 // VGA: shows next round
                 round++;
+
+                if (round == 11) {
+                    printf("round==11\n");
+                    int myScore = player_array[myID]->health + player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
+                    int oppoScore = player_array[oppoID]->health + player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
+
+                    if (myScore < oppoScore) {
+                        *ENDING_INFO_ptr = 3;
+                        *MY_HP_ptr = 0;
+                        *MY_SHIELD_ptr = 0;
+                    } else if (myScore > oppoScore) {
+                        *ENDING_INFO_ptr = 1;
+                        *ENEMY_HP_ptr = 0;
+                        *ENEMY_SHIELD_ptr = 0;
+                    }
+
+                    char gameEnded[MAX] = "gameEnded";
+                    writeToServer(sockfd, gameEnded, sizeof(gameEnded));
+
+                    return;
+                }
+
                 *ROUND_ptr = round;
 
                 printf("player%d shield [%d %d %d]\n", myID, player_array[myID]->shield[0], player_array[myID]->shield[1], player_array[myID]->shield[2]);
@@ -292,19 +312,20 @@ void func(int sockfd)
 
             // GAME & SERVER: if one player died, game ended
             if (!player_array[myID]->alive) {
-                char gameEnded[MAX] = "gameEnded";
-                writeToServer(sockfd, gameEnded, sizeof(gameEnded));
-
                 *ENDING_INFO_ptr = 3;
+                *MY_HP_ptr = 0;
+                *MY_SHIELD_ptr = 0;
 
-                break;
-            } else if (!player_array[oppoID]->alive) {
                 char gameEnded[MAX] = "gameEnded";
                 writeToServer(sockfd, gameEnded, sizeof(gameEnded));
 
+                return;
+            } else if (!player_array[oppoID]->alive) {
                 *ENDING_INFO_ptr = 1;
+                *ENEMY_HP_ptr = 0;
+                *ENEMY_SHIELD_ptr = 0;
 
-                break;
+                return;
             }
 
             // changed
@@ -319,6 +340,23 @@ void func(int sockfd)
             if (!isFirst) {
                 // GAME: remove old shield
                 removeOldShield(player_array[myID], player_array[oppoID]);
+
+                if (round == 10) {
+                    int myScore = player_array[myID]->health + player_array[myID]->shield[0] + player_array[myID]->shield[1] + player_array[myID]->shield[2];
+                    int oppoScore = player_array[oppoID]->health + player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];
+
+                    if (myScore < oppoScore) {
+                        *ENDING_INFO_ptr = 3;
+                        *MY_HP_ptr = 0;
+                        *MY_SHIELD_ptr = 0;
+                    } else if (myScore > oppoScore) {
+                        *ENDING_INFO_ptr = 1;
+                        *ENEMY_HP_ptr = 0;
+                        *ENEMY_SHIELD_ptr = 0;
+                    }
+
+                    return;
+                }
 
                 // GAME & VGA: increment round
                 round++;
@@ -389,18 +427,20 @@ void func(int sockfd)
             *ENEMY_HP_ptr = player_array[oppoID]->health;
             *ENEMY_SHIELD_ptr = player_array[oppoID]->shield[0] + player_array[oppoID]->shield[1] + player_array[oppoID]->shield[2];  
 
+            // GAME & SERVER: if one player died, game ended
             if (!player_array[myID]->alive) {
+                *ENDING_INFO_ptr = 3;
+                *MY_HP_ptr = 0;
+                *MY_SHIELD_ptr = 0;
+
                 char gameEnded[MAX] = "gameEnded";
                 writeToServer(sockfd, gameEnded, sizeof(gameEnded));
-
-                *ENDING_INFO_ptr = 3;
 
                 return;
             } else if (!player_array[oppoID]->alive) {
-                char gameEnded[MAX] = "gameEnded";
-                writeToServer(sockfd, gameEnded, sizeof(gameEnded));
-
                 *ENDING_INFO_ptr = 1;
+                *ENEMY_HP_ptr = 0;
+                *ENEMY_SHIELD_ptr = 0;
 
                 return;
             }
@@ -425,11 +465,7 @@ void func(int sockfd)
                 player_array[myID]->ultUseThisRound = false;
             }
         }
-        
-        //writing our card of choice to the server:
-        //char myCardString[MAX];
-        //sprintf(myCardString, "%d", myCard);
-        //terminalToServer(sockfd, buff, n, sizeof(buff));
+
     }
 }
    
@@ -467,57 +503,61 @@ int main()
     ENDING_INFO_ptr = (unsigned int *) (LW_virtual + 0x00000120);
     SHOW_INSTRUCTION_ptr = (unsigned int *) (LW_virtual + 0x00000130); 
 
-    // Initialize pointer values
-    *INITIAL_SCREEN_ptr = 0;
-    *ENEMY_CARD_VISIBLE_ptr = 0;
-    *CARD_SELECT_ptr = 3;
-    *MY_CARD_1_ptr = 0;
-    *MY_CARD_2_ptr = 0;
-    *MY_CARD_3_ptr = 0;
-    *MY_CARD_USED_ptr = 0;
-    *MY_HP_ptr = 0;
-    *MY_SHIELD_ptr = 0;
-    *ENEMY_CARD_USED_ptr = 0;
-    *TIME_ptr = 0;
-    *ROUND_ptr = 0;
-    *ENEMY_HP_ptr = 0;
-    *ENEMY_SHIELD_ptr = 0;
-    *KEYCODE_RST_ptr = 1;
-    *KEYCODE_RST_ptr = 0;
-    *ENDING_INFO_ptr = 0;
-    *SHOW_INSTRUCTION_ptr = 0;
+    while (1) {
+        // Initialize pointer values
+        *INITIAL_SCREEN_ptr = 0;
+        *ENEMY_CARD_VISIBLE_ptr = 0;
+        *CARD_SELECT_ptr = 3;
+        *MY_CARD_1_ptr = 0;
+        *MY_CARD_2_ptr = 0;
+        *MY_CARD_3_ptr = 0;
+        *MY_CARD_USED_ptr = 0;
+        *MY_HP_ptr = 0;
+        *MY_SHIELD_ptr = 0;
+        *ENEMY_CARD_USED_ptr = 0;
+        *TIME_ptr = 0;
+        *ROUND_ptr = 0;
+        *ENEMY_HP_ptr = 0;
+        *ENEMY_SHIELD_ptr = 0;
+        *KEYCODE_RST_ptr = 1;
+        *KEYCODE_RST_ptr = 0;
+        *ENDING_INFO_ptr = 0;
+        *SHOW_INSTRUCTION_ptr = 0;
+        
+        int sockfd, connfd;
+        struct sockaddr_in servaddr, cli;
+        // socket create and verification
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd == -1) {
+            printf("socket creation failed...\n");
+            exit(0);
+        }
+        else
+            printf("Socket successfully created..\n");
+        bzero(&servaddr, sizeof(servaddr));
     
-    int sockfd, connfd;
-    struct sockaddr_in servaddr, cli;
-    // socket create and verification
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1) {
-        printf("socket creation failed...\n");
-        exit(0);
+        // assign IP, PORT
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_addr.s_addr = inet_addr("192.168.0.101");
+        printf("%d\n", PORT);
+        servaddr.sin_port = htons(PORT);
+    
+        // connect the client socket to server socket
+        if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+            printf("connection with the server failed...\n");
+            exit(0);
+        }
+        else
+            printf("connected to the server...\n");
+    
+        // function for chat
+        func(sockfd);
+        
+        // close the socket
+        close(sockfd);
+
+        getEscape(KEYCODE_ptr, KEYCODE_RST_ptr, INITIAL_SCREEN_ptr);
     }
-    else
-        printf("Socket successfully created..\n");
-    bzero(&servaddr, sizeof(servaddr));
-   
-    // assign IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr("192.168.0.101");
-    printf("%d\n", PORT);
-    servaddr.sin_port = htons(PORT);
-   
-    // connect the client socket to server socket
-    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
-        printf("connection with the server failed...\n");
-        exit(0);
-    }
-    else
-        printf("connected to the server...\n");
-   
-    // function for chat
-    func(sockfd);
-   
-    // close the socket
-    close(sockfd);
 }
 
 //write a given string to server
@@ -539,7 +579,7 @@ void terminalToServer(int sockfd, char * buff, int n, int size ){
 }
 
 //Gets Player Nickname and if he wants to play vs AI
-void initializePlayer(int sockfd) {
+bool initializePlayer(int sockfd) {
     char buff[MAX];
     char myRoundBuff[MAX];
     int n;
@@ -551,9 +591,10 @@ void initializePlayer(int sockfd) {
     printf("From Server : %s\n", buff);
     bzero(buff, sizeof(buff));
     printf("Would you like to play Singleplayer mode (Y/N): ");
-    n = 0;
-    while ((buff[n++] = getchar()) != '\n')
-        ;
+    // n = 0;
+    // while ((buff[n++] = getchar()) != '\n')
+    //     ;
+    buff[0] = getPlayerMode(KEYCODE_ptr, KEYCODE_RST_ptr, INITIAL_SCREEN_ptr);
 
     // changed important! how to detect AI
     if (buff[0] == 'Y' || buff[0] == 'y'){
@@ -570,10 +611,12 @@ void initializePlayer(int sockfd) {
     printf("From Server : %s\n", buff);
     bzero(buff, sizeof(buff));
     printf("Choose your Nickname: ");
-    n = 0;
-    while ((buff[n++] = getchar()) != '\n')
-        ;
+    // n = 0;
+    // while ((buff[n++] = getchar()) != '\n')
+    //     ;
+    sprintf(buff, "%d", (int) time(NULL));
     write(sockfd, buff, sizeof(buff));
     bzero(buff, sizeof(buff));
 
+    return toReturn;
 }
