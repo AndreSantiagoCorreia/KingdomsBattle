@@ -104,6 +104,7 @@ def handle(client):
         try:
             message = client.recv(1024) #1024 bytes
             #broadcast(message)
+            print(message)
             chat(message, client)
         except: # remove client if it has left
             index = clients.index(client)
@@ -162,6 +163,7 @@ def receive():
                 index1 = clients.index(waitingMM[0])
                 waitingMM.remove(clients[index1])
                 index2 = clients.index(client)
+                waitingMM.remove(clients[index2])
                 createRooms(index1, index2)
 
             print(f'Nickname is: {nickname}')
