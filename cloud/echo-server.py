@@ -7,8 +7,8 @@ import threading
 import string
 import time
 
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 43535# 65432  # Port to listen on (non-privileged ports are > 1023)
+HOST = "192.168.0.101"  # Standard loopback interface address (localhost)
+PORT = 3000 # 65432  # Port to listen on (non-privileged ports are > 1023)
 MAXROUNDS = 9 #number of rounds that should be played
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
