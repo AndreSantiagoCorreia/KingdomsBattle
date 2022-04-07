@@ -333,7 +333,14 @@ def chatAI(message, client): #player_array[myID]->ultimate, player_array[myID]->
 
                     ai_used = 0
                     # this can be more complicated, consider later
-                    if tuples[3] != 0:
+                    if tuples[3] == 4:
+                        if AIList_list[i][3] <= 6:
+                            ai_used = 0
+                        elif randint(0,10) >= 7:
+                            ai_used = 1
+                        else:
+                            ai_used = 0
+                    elif tuples[3] != 0:
                         if randint(0,10) >= 4:
                             ai_used = 0
                         else:
