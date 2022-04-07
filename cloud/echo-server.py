@@ -398,6 +398,11 @@ def output_function(roundbuff, left_cards, stat, card_on_deck): #stat in string
         player_score = int(user_input[1]) + int(user_input[2]) * 0.6
         ai_score = int(user_input[3]) + int(user_input[4]) * 0.8
 
+        if roundbuff == 2:
+            player_score = player_score * 0.6
+        elif roundbuff == 3:
+            player_score = player_score * 1.25
+
         attack_card = []
         defense_card = []
 
