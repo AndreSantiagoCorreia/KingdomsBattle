@@ -26,26 +26,26 @@ Since our final product is a video game, the game should meet following goals:
 
 
 ## Contribution
-### Hardware_Nick
+### [Hardware_Nick](https://github.com/UBC-CPEN391/l2c-39/tree/main/hardware)
 - Designed and implemented game UI
 - Developed VGA video output driver in verilog
     - Fully hardware-accelrated graphics
     - Textures stored in on-chip memory
 - Developed PS2 Keyboard input driver
-### Cloud_Andre
+### [Cloud_Andre](https://github.com/UBC-CPEN391/l2c-39/tree/main/cloud)
 - Developed a back-end server in Python
     - Handles multiple client connections
     - Create separate rooms for multiplayer and singlplayer modes
 - Developed client code in Python and converted to C
     - Sends/Receives message
     - the game runs here
-### Game_Cassiel
+### [Game_Cassiel](https://github.com/UBC-CPEN391/l2c-39/tree/main/gameFiles)
 - Implemented game logic in C
 - Merge game logic with client code
     - run the code on linux
     - synchronize two player's screen when running multiplayer mode
 - Merge game code with VGA and Keyboard drivers
-### AI_Mike
+### [AI_Mike](https://github.com/UBC-CPEN391/l2c-39/tree/main/AI)
 - Implemented first draft of game logic with Cassiel
     - Construct dataset by simulating above code 10,000 to 50,000 times
 - Implemented AI logic which use dataset as a lookup table to determine the next move
