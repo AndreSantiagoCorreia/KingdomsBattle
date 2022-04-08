@@ -11,22 +11,14 @@ module ps2_kbd
     logic [7:0] counter;
     logic counter_reset;
 
-    logic ps2_clk_sync;
-    doublesync sync_clk (
-        .indata(ps2_clk),
-        .outdata(ps2_clk_sync),
-        .clk(clk),
-        .reset(1'b1)
-    );
-
-    logic ps2_data_sync;
-    doublesync sync_data (
-        .indata(ps2_data),
-        .outdata(ps2_data_sync),
-        .clk(clk),
-        .reset(1'b1)
-    );
-
+    // Synchronize the PS/2 signals to avoid metastability
+    logic ps2_clk_sync, ps2_clk_sync1, ps2_data_sync, ps2_data_sync1;
+    always_ff @(posedge clk) begin
+        ps2_clk_sync1 <= ps2_clk;
+        ps2_clk_sync <= ps2_clk_sync1;
+        ps2_data_sync1 <= ps2_data;
+        ps2_data_sync <= ps2_data_sync1;
+    end
 
     always_ff @(negedge ps2_clk_sync or posedge counter_reset) begin
         if (counter_reset)
@@ -82,6 +74,7 @@ module ps2_kbd
         end
     end
 
+    // Reset only when HPS has already read the keycode, so we don't get the same keycode multiple times
     always_ff @(posedge clk or posedge keycode_reset) begin
         if (keycode_reset) begin
             keycode_valid <= 1'b0;

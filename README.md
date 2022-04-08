@@ -54,4 +54,5 @@ Since our final product is a video game, the game should meet following goals:
 - AI has winning probability of 60% roughly
 
 ## Acknowledgement
-HPS-to-FPGA and PIO IP cores was obtained from Altera website. Other than that, every code was written by team members.
+The HPS-to-FPGA memory-mapped interface, PIO, and On-chip memory IP cores were obtained from Altera 
+in Quartus. Other than that, every code was written by team members.

@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include "../address_map_arm.h"
+#include "address_map_arm.h"
 
 #ifndef VGA_H
 #define VGA_H

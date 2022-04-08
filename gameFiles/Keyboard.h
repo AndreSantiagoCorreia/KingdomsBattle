@@ -12,7 +12,6 @@ unsigned int getKeycode(volatile int * KEYCODE_ptr, volatile int * KEYCODE_RST_p
    if (keycode & 0x01000000) {
       printf("keycode:%x \n", keycode - 0x01000000);
       *KEYCODE_RST_ptr = 0x00000001;
-      //for(int i = 0; i < 10000; i++) {};
       *KEYCODE_RST_ptr = 0x00000000;
       return keycode - 0x01000000;
    }

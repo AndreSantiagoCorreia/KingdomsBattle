@@ -9,14 +9,6 @@ module draw_card
 );
 
     logic [14:0] bg_addr;
-    /*always_comb begin
-        case (card_type)
-            2'b00: bg_addr = y_pos * 6'd54 + x_pos;
-            2'b01: bg_addr = y_pos * 6'd54 + x_pos + 12'd3672;
-            2'b10: bg_addr = y_pos * 6'd54 + x_pos + 13'd7344;
-            2'b11: bg_addr = y_pos * 6'd54 + x_pos + 14'd11016;
-        endcase
-    end*/
     assign bg_addr = y_pos * 6'd54 + x_pos + 12'd3672 * card_type;
 
     logic [13:0] num_addr;
@@ -45,6 +37,7 @@ module draw_card
         y_delay2 <= y_delay1;
     end
 
+    // Combine the intensity of number and the color of card background to get final output color 
     logic [7:0] inter_r, inter_g, inter_b;
     logic [8:0] sum_r, sum_g, sum_b;
     assign sum_r = {1'b0, bg_data[23:16]} + {1'b0, num_data};

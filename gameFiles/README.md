@@ -5,4 +5,10 @@ Client code to connect to server (echo-server.py in cloud directory), has all th
 These files include every extension we need to run the game, such as HP computation etc. and the vga decoding so that hardware can read and display the game correctly.
 
 Description.txt files:
-These files have useful information about the game, basically the creative part of it.
+These files have useful information about the game rules, basically the creative part of it.
+
+To run the game, copy all the files in this folder onto a linux distribution running on DE1-SoC and run the following command
+```
+gcc c-client.c -o game -std=c99
+./game
+```

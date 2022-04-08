@@ -24,44 +24,19 @@ module canvas
     output logic [23:0] vga_out
 );
 
+    // Calculate the address for background texture
     logic [9:0] bg_addr;
     logic [23:0] bg_data;
     assign bg_addr = {y_pos[4:0], x_pos[4:0]};
     
+    // Get the background color data of current pixel
     bg_tex_mem bg_mem_inst(
         .address(bg_addr),
         .clock(vga_clk),
         .q(bg_data)
     );
 
-    /*logic [1:0] curr_card_type;
-    logic [3:0] curr_card_num;
-    logic [5:0] counter;
-    logic [4:0] timer;
-    always_ff @(posedge next_frame) begin
-        counter <= counter + 6'b1;
-        if (counter == 0) begin
-            if (curr_card_num == 4'd9) begin
-                if (curr_card_type != 2'b01)
-                    curr_card_num <= 4'd0;
-                else
-                    curr_card_num <= 4'd10;
-                curr_card_type <= curr_card_type + 2'b1;
-            end
-            else if (curr_card_num == 4'd10) begin
-                if (curr_card_type == 2'b11)
-                    curr_card_num <= 4'd0;
-                curr_card_type <= curr_card_type + 2'b1;
-            end
-            else 
-                curr_card_num <= curr_card_num + 4'd1;
-            if (timer == 5'b0)
-                timer <= 5'd29;
-            else
-                timer <= timer - 5'b1;
-        end
-    end*/
-
+    // Draw buttons on the initial screen
     logic [23:0] button_data;
     logic [7:0] button_x_pos;
     logic [5:0] button_y_pos;
@@ -78,6 +53,7 @@ module canvas
         .out_data(button_data)
     );
 
+    // Draw all the cards, including the cards of both players
     logic [23:0] card_data;
     logic [6:0] card_x_pos;
     logic [6:0] card_y_pos;
@@ -158,6 +134,7 @@ module canvas
         .out_data(card_data)
     );
 
+    // Draw informations, including HP, shield, round, and time
     logic [7:0] info_data;
     logic [7:0] info_x_pos;
     logic [4:0] info_y_pos;
@@ -214,9 +191,11 @@ module canvas
         .out_data(info_data)
     );
 
+    // Calculate the true output color from a grayscale value
     logic [23:0] converted_info_data;
     assign converted_info_data = info_data <= 8'h40 ? bg_data : {3{8'hff - info_data}};
 
+    // Draw the current round buff
     logic [7:0] buff_data;
     logic [6:0] buff_x_pos;
     logic [6:0] buff_y_pos;
@@ -234,6 +213,7 @@ module canvas
     logic [23:0] converted_buff_data;
     assign converted_buff_data = buff_data <= 8'h40 ? bg_data : {3{8'hff - buff_data}};
 
+    // Draw the ending information (i.e. "You Win / You Lose" message)
     logic [23:0] ending_data;
     logic [8:0] ending_x_pos;
     logic [6:0] ending_y_pos;
@@ -250,6 +230,7 @@ module canvas
         .out_data(ending_data)
     );
 
+    // Draw instructions to prompt for user input
     logic [7:0] instr_data;
     logic [7:0] instr_x_pos;
     logic [4:0] instr_y_pos;
@@ -269,6 +250,7 @@ module canvas
     logic [23:0] converted_instr_data;
     assign converted_instr_data = instr_data <= 8'h40 ? bg_data : {3{8'hff - instr_data}};
 
+    // Delay the position signal for two clock cycles to synchronize with on-chip memory
     logic [9:0] x_delay1, x_delay2, y_delay1, y_delay2, visible_delay1, visible_delay2;
     always_ff @(posedge vga_clk) begin
         x_delay1 <= x_pos;
@@ -279,6 +261,7 @@ module canvas
         visible_delay2 <= visible_delay1;
     end
 
+    // Determine the output color
     logic [23:0] vga_out_reg;
     always_ff @(posedge vga_clk) begin
         if (~initial_screen[0]) begin
@@ -349,6 +332,7 @@ module canvas
         end
     end
 
+    // Dimming some pixels as needed
     logic [7:0] vga_out_r, vga_out_g, vga_out_b;
     assign vga_out_r = vga_out_reg[23:16] <= 8'd40 ? 8'b0 : vga_out_reg[23:16] - 8'd40;
     assign vga_out_g = vga_out_reg[15:8] <= 8'd40 ? 8'b0 : vga_out_reg[15:8] - 8'd40;

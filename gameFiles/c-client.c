@@ -245,7 +245,7 @@ void func(int sockfd)
                         *ENEMY_SHIELD_ptr = 0;
                     }
                     
-                    if (isAI) {
+                    if (!isAI) {
                         char gameEnded[MAX] = "gameEnded";
                         writeToServer(sockfd, gameEnded, sizeof(gameEnded));\
                     }
@@ -593,9 +593,6 @@ bool initializePlayer(int sockfd) {
     printf("From Server : %s\n", buff);
     bzero(buff, sizeof(buff));
     printf("Would you like to play Singleplayer mode (Y/N): ");
-    // n = 0;
-    // while ((buff[n++] = getchar()) != '\n')
-    //     ;
     buff[0] = getPlayerMode(KEYCODE_ptr, KEYCODE_RST_ptr, INITIAL_SCREEN_ptr);
 
     // changed important! how to detect AI
@@ -613,9 +610,6 @@ bool initializePlayer(int sockfd) {
     printf("From Server : %s\n", buff);
     bzero(buff, sizeof(buff));
     printf("Choose your Nickname: ");
-    // n = 0;
-    // while ((buff[n++] = getchar()) != '\n')
-    //     ;
     sprintf(buff, "%d", (int) time(NULL));
     write(sockfd, buff, sizeof(buff));
     bzero(buff, sizeof(buff));

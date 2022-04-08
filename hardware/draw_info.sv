@@ -4,7 +4,7 @@ module draw_info
     input [7:0] x_pos,
     input [4:0] y_pos,
     input [2:0] info_type,
-    input [4:0] num,
+    input [4:0] num,       // The number to be displayed following the text of an information
     output logic [7:0] out_data
 );
 
