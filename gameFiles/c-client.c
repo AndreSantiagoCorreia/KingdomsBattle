@@ -244,9 +244,11 @@ void func(int sockfd)
                         *ENEMY_HP_ptr = 0;
                         *ENEMY_SHIELD_ptr = 0;
                     }
-
-                    char gameEnded[MAX] = "gameEnded";
-                    writeToServer(sockfd, gameEnded, sizeof(gameEnded));
+                    
+                    if (isAI) {
+                        char gameEnded[MAX] = "gameEnded";
+                        writeToServer(sockfd, gameEnded, sizeof(gameEnded));\
+                    }
 
                     return;
                 }
