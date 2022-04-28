@@ -7,4 +7,4 @@ This folder contains all the source code for the hardware compoenent of the proj
 - textures folder contains all the memory initialization files to initialize the on-chip memory with textures used for game UI. textures/png2mif.py is the python script used to generate these files
 - ps2_kbd.sv contains the verilog code for PS/2 keyboard input driver. It reads the keycode and sends it to HPS
 
-Note: The quartus project in this folder is for Quartus Prime 19.1
+Note: The quartus project in this folder is for Quartus Prime 19.1.
