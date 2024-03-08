@@ -35,10 +35,10 @@ Since our final product is a video game, the game should meet following goals:
 ### [Cloud_Andre](https://github.com/UBC-CPEN391/l2c-39/tree/main/cloud)
 - Developed a back-end server in Python
     - Handles multiple client connections
-    - Create separate rooms for multiplayer and singlplayer modes
+    - Create separate rooms for multiplayer and singleplayer modes
 - Developed client code in Python and converted to C
     - Sends/Receives message
-    - the game runs here
+    - Implemented game logic (runs here)
 ### [Game_Cassiel](https://github.com/UBC-CPEN391/l2c-39/tree/main/gameFiles)
 - Implemented game logic in C
 - Merge game logic with client code
